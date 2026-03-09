@@ -1,0 +1,9 @@
+# OpenClaw 配置（可能包含敏感信息）
+.openclaw/
+
+# Vim swap 文件
+*.swp
+
+# 系统文件
+.DS_Store
+Thumbs.db

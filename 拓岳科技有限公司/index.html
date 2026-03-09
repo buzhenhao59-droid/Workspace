@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拓岳科技 - 跨境电商管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1890ff;
+            --primary-dark: #096dd9;
+            --success-color: #52c41a;
+            --danger-color: #ff4d4f;
+            --warning-color: #faad14;
+            --bg-dark: #001529;
+            --bg-light: #f0f2f5;
+            --text-light: #ffffff;
+            --text-dark: #333333;
+            --sidebar-width: 220px;
+            --header-height: 50px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-light);
+            overflow: hidden;
+        }
+
+        /* 加载动画遮罩 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-spinner {
+            text-align: center;
+        }
+
+        .loading-spinner i {
+            font-size: 48px;
+            color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner p {
+            margin-top: 15px;
+            font-size: 16px;
+            color: var(--text-dark);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 左侧任务栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--bg-dark);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h1 {
+            color: var(--text-light);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 10px 0;
+        }
+
+        .menu-item {
+            position: relative;
+            padding: 16px 24px;
+            color: rgba(255, 255, 255, 0.65);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-item.active {
+            color: var(--text-light);
+            background: var(--primary-color);
+        }
+
+        .menu-item i {
+            font-size: 16px;
+            width: 20px;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+        }
+
+        /* 悬停菜单 */
+        .hover-menu {
+            position: fixed;
+            left: var(--sidebar-width);
+            top: 64px;
+            bottom: 0;
+            width: calc(100vw - var(--sidebar-width));
+            background: #ffffff;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            z-index: 900;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .hover-menu.show {
+            display: block;
+        }
+
+        .hover-menu-content {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-section {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .menu-section h3 {
+            font-size: 16px;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .menu-section-item {
+            padding: 10px 12px;
+            margin: 6px 0;
+            color: #666;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-section-item:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .menu-section-item i {
+            font-size: 14px;
+            width: 18px;
+        }
+
+        /* 上方任务栏 */
+        .top-bar {
+            position: fixed;
+            left: var(--sidebar-width);
+            top: 0;
+            right: 0;
+            height: var(--header-height);
+            background: #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            z-index: 800;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 10px;
+            overflow-x: auto;
+        }
+
+        .tab-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab-item:hover {
+            background: #e6f7ff;
+        }
+
+        .tab-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-item .close-btn {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: background 0.2s;
+        }
+
+        .tab-item .close-btn:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-item.active .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            position: fixed;
+            left: var(--sidebar-width);
+            top: var(--header-height);
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-light);
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .page.active {
+            opacity: 1;
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        /* 核心内容卡片 */
+        .content-card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .content-card.primary {
+            min-height: calc(66vh - 60px);
+        }
+
+        .content-card.secondary {
+            display: none;
+        }
+
+        .content-card.secondary.expanded {
+            display: block;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* 数据表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .data-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-tag.success {
+            background: #f6ffed;
+            color: var(--success-color);
+        }
+
+        .status-tag.danger {
+            background: #fff2f0;
+            color: var(--danger-color);
+        }
+
+        .status-tag.warning {
+            background: #fffbe6;
+            color: var(--warning-color);
+        }
+
+        /* 按钮 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-default {
+            background: #ffffff;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+
+        .btn-default:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* 智能补货建议突出显示 */
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .highlight-box h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .highlight-box p {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* 物流商选择列表 */
+        .logistics-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .logistics-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logistics-item:hover {
+            border-color: var(--primary-color);
+        }
+
+        .logistics-item.selected {
+            border-color: var(--primary-color);
+            background: #e6f7ff;
+        }
+
+        .logistics-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 货源配对 */
+        .source-logos {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .source-logo {
+            width: 120px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .source-logo:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* 流程环节 */
+        .process-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+
+        .process-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .process-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 60%;
+            width: 80%;
+            height: 3px;
+            background: #e8e8e8;
+        }
+
+        .process-step.success:not(:last-child)::after {
+            background: var(--success-color);
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .step-icon.success {
+            background: var(--success-color);
+        }
+
+        .step-icon.danger {
+            background: var(--danger-color);
+            cursor: pointer;
+        }
+
+        .step-icon.pending {
+            background: #d9d9d9;
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* AI悬浮窗 */
+        .ai-float-btn {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .ai-float-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .ai-chat-box {
+            position: fixed;
+            right: 30px;
+            bottom: 100px;
+            width: 380px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ai-chat-box.show {
+            display: flex;
+        }
+
+        .ai-chat-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-chat-header h3 {
+            font-size: 16px;
+        }
+
+        .ai-chat-header .close-btn {
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .ai-message {
+            margin-bottom: 12px;
+        }
+
+        .ai-message.assistant {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .ai-message.user {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-left: 40px;
+        }
+
+        .ai-suggestions {
+            margin-top: 12px;
+        }
+
+        .ai-suggestion-item {
+            padding: 10px;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            margin: 6px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion-item:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .ai-chat-input {
+            padding: 12px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .ai-chat-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .ai-chat-input input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .ai-chat-input button {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* 仓库卡片 */
+        .warehouse-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .warehouse-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .warehouse-card h4 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warehouse-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .warehouse-stat:last-child {
+            border-bottom: none;
+        }
+
+        /* 地图容器 */
+        .map-container {
+            height: 400px;
+            background: #e8e8e8;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 18px;
+        }
+
+        /* 财务卡片 */
+        .finance-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .finance-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .finance-card h4 {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .finance-card .amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .finance-card .change {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .finance-card .change.up {
+            color: var(--success-color);
+        }
+
+        .finance-card .change.down {
+            color: var(--danger-color);
+        }
+
+        /* 核心内容切换 */
+        .core-content-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .core-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .core-tab:hover {
+            border-color: var(--primary-color);
+        }
+
+        .core-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .warehouse-cards,
+            .finance-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 60px;
+            }
+
+            .sidebar-header h1 {
+                display: none;
+            }
+
+            .menu-item span {
+                display: none;
+            }
+
+            .menu-item {
+                justify-content: center;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <p>加载中...</p>
+        </div>
+    </div>
+
+    <!-- 左侧任务栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>拓岳科技</h1>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item" data-module="sales" data-index="0">
+                <i class="fas fa-chart-line"></i>
+                <span>销售管理</span>
+            </div>
+            <div class="menu-item" data-module="product" data-index="1">
+                <i class="fas fa-box"></i>
+                <span>产品与库存管理</span>
+            </div>
+            <div class="menu-item" data-module="fba" data-index="2">
+                <i class="fas fa-warehouse"></i>
+                <span>FBA仓储与补货</span>
+            </div>
+            <div class="menu-item" data-module="logistics" data-index="3">
+                <i class="fas fa-truck"></i>
+                <span>物流与供应链管理</span>
+            </div>
+            <div class="menu-item" data-module="finance" data-index="4">
+                <i class="fas fa-coins"></i>
+                <span>财务与报表管理</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 悬停菜单 -->
+    <div class="hover-menu" id="hoverMenu">
+        <!-- 动态内容 -->
+    </div>
+
+    <!-- 上方任务栏 -->
+    <div class="top-bar" id="topBar">
+        <!-- 动态标签页 -->
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content" id="mainContent">
+        <!-- 销售管理页面 -->
+        <div class="page" id="page-sales">
+            <div class="core-content-tabs">
+                <div class="core-tab active" data-content="order">订单中心</div>
+                <div class="core-tab" data-content="listing">Listing管理</div>
+                <div class="core-tab" data-content="aftersale">售后中心</div>
+            </div>
+
+            <!-- 订单中心 -->
+            <div class="content-card primary" id="sales-order">
+                <div class="card-header">
+                    <h2><i class="fas fa-shopping-cart"></i> 订单中心</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-sync"></i> 同步订单</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>平台</th>
+                                <th>商品</th>
+                                <th>金额</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AMZ-20260303-001</td>
+                                <td>亚马逊</td>
+                                <td>无线蓝牙耳机 x2</td>
+                                <td>$89.99</td>
+                                <td><span class="status-tag success">已审核</span></td>
+                                <td>
+                                    <button class="btn btn-default">审核</button>
+                                    <button class="btn btn-default">拆分</button>
+                                    <button class="btn btn-default">合并</button>
+                                    <button class="btn btn-default">标记异常</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AMZ-20260303-002</td>
+                                <td>亚马逊</td>
+                                <td>智能手表 x1</td>
+                                <td>$156.00</td>
+                                <td><span class="status-tag warning">待审核</span></td>
+                                <td>
+                                    <button class="btn btn-default">审核</button>
+                                    <button class="btn btn-default">拆分</button>
+                                    <button class="btn btn-default">合并</button>
+                                    <button class="btn btn-default">标记异常</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AMZ-20260303-003</td>
+                                <td>亚马逊</td>
+                                <td>便携充电宝 x3</td>
+                                <td>$67.50</td>
+                                <td><span class="status-tag danger">异常订单</span></td>
+                                <td>
+                                    <button class="btn btn-default">审核</button>
+                                    <button class="btn btn-default">拆分</button>
+                                    <button class="btn btn-default">合并</button>
+                                    <button class="btn btn-default">标记异常</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Listing管理 -->
+            <div class="content-card primary" id="sales-listing" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-tags"></i> Listing管理</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> 新增Listing</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>商品名称</th>
+                                <th>店铺</th>
+                                <th>价格</th>
+                                <th>库存</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SKU-001</td>
+                                <td>无线蓝牙耳机 Pro</td>
+                                <td>店铺A</td>
+                                <td>$45.99</td>
+                                <td>256</td>
+                                <td><span class="status-tag success">在线</span></td>
+                                <td>
+                                    <button class="btn btn-default">调价</button>
+                                    <button class="btn btn-default">刊登</button>
+                                    <button class="btn btn-default">A+页面</button>
+                                    <button class="btn btn-default">监控</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>SKU-002</td>
+                                <td>智能运动手表</td>
+                                <td>店铺B</td>
+                                <td>$78.00</td>
+                                <td>89</td>
+                                <td><span class="status-tag warning">低库存</span></td>
+                                <td>
+                                    <button class="btn btn-default">调价</button>
+                                    <button class="btn btn-default">刊登</button>
+                                    <button class="btn btn-default">A+页面</button>
+                                    <button class="btn btn-default">监控</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 售后中心 -->
+            <div class="content-card primary" id="sales-aftersale" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-headset"></i> 售后中心</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-comments"></i> 打开客服系统</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>工单号</th>
+                                <th>类型</th>
+                                <th>客户</th>
+                                <th>订单号</th>
+                                <th>问题描述</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AS-20260303-001</td>
+                                <td>退款退货</td>
+                                <td>John D.</td>
+                                <td>AMZ-20260301-045</td>
+                                <td>商品有划痕</td>
+                                <td><span class="status-tag warning">处理中</span></td>
+                                <td>
+                                    <button class="btn btn-default">处理退款</button>
+                                    <button class="btn btn-default">查看详情</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AS-20260303-002</td>
+                                <td>仅退款</td>
+                                <td>Emma W.</td>
+                                <td>AMZ-20260228-112</td>
+                                <td>未收到配件</td>
+                                <td><span class="status-tag success">已完成</span></td>
+                                <td>
+                                    <button class="btn btn-default">查看详情</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 产品与库存管理页面 -->
+        <div class="page" id="page-product">
+            <div class="core-content-tabs">
+                <div class="core-tab active" data-content="productlib">产品库</div>
+                <div class="core-tab" data-content="warehouse">多仓库存管理</div>
+                <div class="core-tab" data-content="inout">进出库流转管理</div>
+            </div>
+
+            <!-- 产品库 -->
+            <div class="content-card primary" id="product-productlib">
+                <div class="card-header">
+                    <h2><i class="fas fa-cube"></i> 产品库</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> 添加产品</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h4 style="margin-bottom: 10px;">货源配对</h4>
+                    <div class="source-logos">
+                        <div class="source-logo" onclick="window.open('https://www.1688.com', '_blank')">1688</div>
+                        <div class="source-logo" onclick="window.open('https://www.alibaba.com', '_blank')">Alibaba</div>
+                        <div class="source-logo" onclick="window.open('https://www.made-in-china.com', '_blank')">Made-in-China</div>
+                        <div class="source-logo" onclick="window.open('https://www.globalsources.com', '_blank')">Global Sources</div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>产品名称</th>
+                                <th>品牌</th>
+                                <th>分类</th>
+                                <th>图片</th>
+                                <th>货源</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SKU-001</td>
+                                <td>无线蓝牙耳机 Pro</td>
+                                <td>SoundMax</td>
+                                <td>电子产品/音频</td>
+                                <td><i class="fas fa-image" style="color: #1890ff; cursor: pointer;"></i></td>
+                                <td>1688</td>
+                                <td>
+                                    <button class="btn btn-default">编辑</button>
+                                    <button class="btn btn-default">配对货源</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>SKU-002</td>
+                                <td>智能运动手表</td>
+                                <td>TimeFit</td>
+                                <td>电子产品/穿戴</td>
+                                <td><i class="fas fa-image" style="color: #1890ff; cursor: pointer;"></i></td>
+                                <td>Alibaba</td>
+                                <td>
+                                    <button class="btn btn-default">编辑</button>
+                                    <button class="btn btn-default">配对货源</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 多仓库存管理 -->
+            <div class="content-card primary" id="product-warehouse" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-warehouse"></i> 多仓库存管理</h2>
+                </div>
+                <div class="card-body">
+                    <div class="warehouse-cards">
+                        <div class="warehouse-card">
+                            <h4><i class="fas fa-home"></i> 本地仓</h4>
+                            <div class="warehouse-stat">
+                                <span>总SKU数</span>
+                                <span>1,256</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>总库存量</span>
+                                <span>15,890</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>待出库</span>
+                                <span>234</span>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">查看详情</button>
+                        </div>
+                        <div class="warehouse-card">
+                            <h4><i class="fab fa-amazon"></i> FBA仓</h4>
+                            <div class="warehouse-stat">
+                                <span>总SKU数</span>
+                                <span>892</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>总库存量</span>
+                                <span>8,456</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>在途</span>
+                                <span>1,200</span>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">查看详情</button>
+                        </div>
+                        <div class="warehouse-card">
+                            <h4><i class="fas fa-globe"></i> 海外仓</h4>
+                            <div class="warehouse-stat">
+                                <span>总SKU数</span>
+                                <span>456</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>总库存量</span>
+                                <span>3,890</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>仓库名称</span>
+                                <span>美国LA仓</span>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">查看详情</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 进出库流转管理 -->
+            <div class="content-card primary" id="product-inout" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-exchange-alt"></i> 进出库流转管理</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> 新建单据</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>单据号</th>
+                                <th>类型</th>
+                                <th>仓库</th>
+                                <th>商品数</th>
+                                <th>创建时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RK-20260303-001</td>
+                                <td>入库单</td>
+                                <td>本地仓</td>
+                                <td>150</td>
+                                <td>2026-03-03 10:30</td>
+                                <td><span class="status-tag success">已完成</span></td>
+                                <td><button class="btn btn-default">查看</button></td>
+                            </tr>
+                            <tr>
+                                <td>CK-20260303-002</td>
+                                <td>出库单</td>
+                                <td>FBA仓</td>
+                                <td>89</td>
+                                <td>2026-03-03 11:45</td>
+                                <td><span class="status-tag warning">处理中</span></td>
+                                <td><button class="btn btn-default">查看</button></td>
+                            </tr>
+                            <tr>
+                                <td>DB-20260303-003</td>
+                                <td>调拨单</td>
+                                <td>本地仓→海外仓</td>
+                                <td>200</td>
+                                <td>2026-03-03 09:15</td>
+                                <td><span class="status-tag warning">运输中</span></td>
+                                <td><button class="btn btn-default">查看</button></td>
+                            </tr>
+                            <tr>
+                                <td>PD-20260303-004</td>
+                                <td>盘点单</td>
+                                <td>本地仓</td>
+                                <td>56</td>
+                                <td>2026-03-02 16:00</td>
+                                <td><span class="status-tag success">已完成</span></td>
+                                <td><button class="btn btn-default">查看</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FBA仓储与补货页面 -->
+        <div class="page" id="page-fba">
+            <div class="core-content-tabs">
+                <div class="core-tab active" data-content="replenish">智能补货建议</div>
+                <div class="core-tab" data-content="shipment">货件管理</div>
+            </div>
+
+            <!-- 智能补货建议 -->
+            <div class="content-card primary" id="fba-replenish">
+                <div class="card-header">
+                    <h2><i class="fas fa-brain"></i> 智能补货建议</h2>
+                </div>
+                <div class="card-body">
+                    <div class="highlight-box">
+                        <h3>📊 智能补货方案</h3>
+                        <p>建议补货 3 个SKU，总计 580 件</p>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>商品名称</th>
+                                <th>当前库存</th>
+                                <th>日均销量</th>
+                                <th>库存周转(天)</th>
+                                <th>投程时长(天)</th>
+                                <th>建议补货量</th>
+                                <th>紧急程度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SKU-002</td>
+                                <td>智能运动手表</td>
+                                <td>89</td>
+                                <td>15</td>
+                                <td>6</td>
+                                <td>25</td>
+                                <td><strong style="color: #1890ff;">300</strong></td>
+                                <td><span class="status-tag danger">紧急</span></td>
+                            </tr>
+                            <tr>
+                                <td>SKU-005</td>
+                                <td>便携充电宝</td>
+                                <td>156</td>
+                                <td>20</td>
+                                <td>8</td>
+                                <td>20</td>
+                                <td><strong style="color: #1890ff;">180</strong></td>
+                                <td><span class="status-tag warning">中等</span></td>
+                            </tr>
+                            <tr>
+                                <td>SKU-008</td>
+                                <td>蓝牙音箱</td>
+                                <td>234</td>
+                                <td>12</td>
+                                <td>19</td>
+                                <td>22</td>
+                                <td><strong style="color: #1890ff;">100</strong></td>
+                                <td><span class="status-tag success">正常</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 货件管理 -->
+            <div class="content-card primary" id="fba-shipment" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-boxes"></i> 货件管理</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> 创建发货计划</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>货件ID</th>
+                                <th>目的地</th>
+                                <th>商品数</th>
+                                <th>箱数</th>
+                                <th>跟踪号</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>FBA-20260303-001</td>
+                                <td>美国-CA</td>
+                                <td>500</td>
+                                <td>25</td>
+                                <td>YT456789012</td>
+                                <td><span class="status-tag warning">运输中</span></td>
+                                <td>
+                                    <button class="btn btn-default">创建装箱任务</button>
+                                    <button class="btn btn-default">跟踪物流</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FBA-20260302-002</td>
+                                <td>美国-TX</td>
+                                <td>300</td>
+                                <td>15</td>
+                                <td>YT456789013</td>
+                                <td><span class="status-tag success">已入库</span></td>
+                                <td>
+                                    <button class="btn btn-default">查看详情</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 物流与供应链管理页面 -->
+        <div class="page" id="page-logistics">
+            <div class="core-content-tabs">
+                <div class="core-tab active" data-content="channel">物流渠道管理</div>
+                <div class="core-tab" data-content="purchase">采购管理</div>
+            </div>
+
+            <!-- 物流渠道管理 -->
+            <div class="content-card primary" id="logistics-channel">
+                <div class="card-header">
+                    <h2><i class="fas fa-shipping-fast"></i> 物流渠道管理</h2>
+                </div>
+                <div class="card-body">
+                    <h4 style="margin-bottom: 10px;">选择物流商</h4>
+                    <div class="logistics-list">
+                        <label class="logistics-item">
+                            <input type="checkbox">
+                            <span>DHL</span>
+                        </label>
+                        <label class="logistics-item">
+                            <input type="checkbox">
+                            <span>FedEx</span>
+                        </label>
+                        <label class="logistics-item">
+                            <input type="checkbox">
+                            <span>UPS</span>
+                        </label>
+                        <label class="logistics-item">
+                            <input type="checkbox">
+                            <span>顺丰国际</span>
+                        </label>
+                        <label class="logistics-item">
+                            <input type="checkbox">
+                            <span>云途物流</span>
+                        </label>
+                        <label class="logistics-item">
+                            <input type="checkbox">
+                            <span>燕文物流</span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 20px; display: flex; gap: 15px;">
+                        <div style="flex: 1;">
+                            <h4 style="margin-bottom: 10px;">运费试算</h4>
+                            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px;">
+                                <p><strong>预估运费：</strong>$125.60</p>
+                                <p><strong>时效：</strong>5-7工作日</p>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin-bottom: 10px;">操作</h4>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-primary">运费试算</button>
+                                <button class="btn btn-default"><i class="fas fa-print"></i> 打印面单</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 10px;">物流轨迹查询</h4>
+                        <div class="map-container">
+                            <i class="fas fa-map-marked-alt"></i> 地图轨迹展示区域
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 采购管理 -->
+            <div class="content-card primary" id="logistics-purchase" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-shopping-basket"></i> 采购管理</h2>
+                    <div>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> 创建采购单</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="highlight-box" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333;">
+                        <h3>🔔 补货提醒</h3>
+                        <p>有 3 个SKU需要补货，请及时处理</p>
+                    </div>
+
+                    <h4 style="margin: 20px 0 15px;">采购流程状态</h4>
+                    <div class="process-steps">
+                        <div class="process-step success">
+                            <div class="step-icon success"><i class="fas fa-check"></i></div>
+                            <div class="step-label">入库</div>
+                        </div>
+                        <div class="process-step success">
+                            <div class="step-icon success"><i class="fas fa-check"></i></div>
+                            <div class="step-label">质检</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-icon danger" onclick="alert('供应商对账异常：发票金额不符')"><i class="fas fa-times"></i></div>
+                            <div class="step-label">供应商对账</div>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>采购单号</th>
+                                <th>供应商</th>
+                                <th>商品</th>
+                                <th>数量</th>
+                                <th>金额</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PO-20260303-001</td>
+                                <td>深圳供应商A</td>
+                                <td>无线蓝牙耳机</td>
+                                <td>500</td>
+                                <td>¥12,500</td>
+                                <td><span class="status-tag warning">对账异常</span></td>
+                                <td><button class="btn btn-default">处理</button></td>
+                            </tr>
+                            <tr>
+                                <td>PO-20260302-002</td>
+                                <td>广州供应商B</td>
+                                <td>智能手表</td>
+                                <td>300</td>
+                                <td>¥28,000</td>
+                                <td><span class="status-tag success">已完成</span></td>
+                                <td><button class="btn btn-default">查看</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 财务与报表管理页面 -->
+        <div class="page" id="page-finance">
+            <div class="core-content-tabs">
+                <div class="core-tab active" data-content="profit">精细化利润核算</div>
+                <div class="core-tab" data-content="account">往来账款管理</div>
+            </div>
+
+            <!-- 精细化利润核算 -->
+            <div class="content-card primary" id="finance-profit">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-pie"></i> SKU级别利润报表</h2>
+                    <div>
+                        <button class="btn btn-default"><i class="fas fa-download"></i> 导出报表</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="finance-cards">
+                        <div class="finance-card">
+                            <h4>本月总利润</h4>
+                            <div class="amount">$45,890</div>
+                            <div class="change up"><i class="fas fa-arrow-up"></i> 12.5% 较上月</div>
+                        </div>
+                        <div class="finance-card">
+                            <h4>平均利润率</h4>
+                            <div class="amount">23.6%</div>
+                            <div class="change up"><i class="fas fa-arrow-up"></i> 2.3% 较上月</div>
+                        </div>
+                        <div class="finance-card">
+                            <h4>总销售额</h4>
+                            <div class="amount">$194,450</div>
+                            <div class="change up"><i class="fas fa-arrow-up"></i> 8.7% 较上月</div>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>商品名称</th>
+                                <th>销售额</th>
+                                <th>成本</th>
+                                <th>佣金</th>
+                                <th>广告费</th>
+                                <th>物流费</th>
+                                <th>利润</th>
+                                <th>利润率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SKU-001</td>
+                                <td>无线蓝牙耳机 Pro</td>
+                                <td>$12,450</td>
+                                <td>$4,980</td>
+                                <td>$1,868</td>
+                                <td>$623</td>
+                                <td>$1,245</td>
+                                <td><strong style="color: #52c41a;">$3,734</strong></td>
+                                <td>30%</td>
+                            </tr>
+                            <tr>
+                                <td>SKU-002</td>
+                                <td>智能运动手表</td>
+                                <td>$18,720</td>
+                                <td>$7,488</td>
+                                <td>$2,808</td>
+                                <td>$936</td>
+                                <td>$1,872</td>
+                                <td><strong style="color: #52c41a;">$5,616</strong></td>
+                                <td>30%</td>
+                            </tr>
+                            <tr>
+                                <td>SKU-003</td>
+                                <td>便携充电宝</td>
+                                <td>$8,900</td>
+                                <td>$4,450</td>
+                                <td>$1,335</td>
+                                <td>$445</td>
+                                <td>$890</td>
+                                <td><strong style="color: #52c41a;">$1,780</strong></td>
+                                <td>20%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 往来账款管理 -->
+            <div class="content-card primary" id="finance-account" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-invoice-dollar"></i> 往来账款管理</h2>
+                </div>
+                <div class="card-body">
+                    <div class="warehouse-cards">
+                        <div class="warehouse-card">
+                            <h4><i class="fas fa-hand-holding-usd"></i> 供应商应付账款</h4>
+                            <div class="warehouse-stat">
+                                <span>待付款</span>
+                                <span style="color: #ff4d4f;">¥156,000</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>已付款</span>
+                                <span style="color: #52c41a;">¥423,000</span>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">查看明细</button>
+                        </div>
+                        <div class="warehouse-card">
+                            <h4><i class="fab fa-amazon"></i> 平台收款流水</h4>
+                            <div class="warehouse-stat">
+                                <span>待结算</span>
+                                <span style="color: #faad14;">$28,500</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>已结算</span>
+                                <span style="color: #52c41a;">$156,800</span>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">查看明细</button>
+                        </div>
+                        <div class="warehouse-card">
+                            <h4><i class="fas fa-receipt"></i> 企业费用报销</h4>
+                            <div class="warehouse-stat">
+                                <span>待审批</span>
+                                <span style="color: #faad14;">¥12,350</span>
+                            </div>
+                            <div class="warehouse-stat">
+                                <span>已报销</span>
+                                <span style="color: #52c41a;">¥45,600</span>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">查看明细</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI悬浮窗 -->
+    <button class="ai-float-btn" id="aiFloatBtn">
+        <i class="fas fa-robot"></i>
+    </button>
+
+    <div class="ai-chat-box" id="aiChatBox">
+        <div class="ai-chat-header">
+            <h3><i class="fas fa-robot"></i> AI智能助手</h3>
+            <span class="close-btn" id="aiCloseBtn"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="ai-chat-messages" id="aiMessages">
+            <div class="ai-message assistant">
+                <p>👋 您好！我是您的AI助手，我分析了以下需要关注的事项：</p>
+                <div class="ai-suggestions">
+                    <div class="ai-suggestion-item">📊 SKU-002 库存预警，建议尽快补货</div>
+                    <div class="ai-suggestion-item">💰 本月利润增长12.5%，表现良好</div>
+                    <div class="ai-suggestion-item">🚚 有2个货件即将到达FBA仓库</div>
+                    <div class="ai-suggestion-item">📦 1个采购单对账异常，需要处理</div>
+                </div>
+                <p style="margin-top: 10px; font-size: 13px; color: #666;">您可以点击以上话题继续，或直接输入您的问题</p>
+            </div>
+        </div>
+        <div class="ai-chat-input">
+            <input type="text" placeholder="输入您的问题..." id="aiInput">
+            <button id="aiSendBtn">发送</button>
+        </div>
+    </div>
+
+    <script>
+        // 状态管理
+        const state = {
+            openTabs: [],
+            activePage: null,
+            hoverMenuVisible: false,
+            hoverTimeout: null
+        };
+
+        // 模块数据
+        const moduleData = {
+            sales: {
+                name: '销售管理',
+                icon: 'fa-chart-line',
+                sections: [
+                    {
+                        title: '订单中心',
+                        items: ['订单审核', '订单拆分', '订单合并', '异常订单标记']
+                    },
+                    {
+                        title: 'Listing管理',
+                        items: ['商品监控', '调价管理', '刊登管理', 'A+页面管理']
+                    },
+                    {
+                        title: '售后中心',
+                        items: ['平台客服系统', '退款退货处理', '退货数据分析']
+                    }
+                ]
+            },
+            product: {
+                name: '产品与库存管理',
+                icon: 'fa-box',
+                sections: [
+                    {
+                        title: '产品库',
+                        items: ['SKU基础信息', '图片品牌分类管理', '1688货源配对']
+                    },
+                    {
+                        title: '多仓库存管理',
+                        items: ['本地仓', 'FBA仓', '海外仓']
+                    },
+                    {
+                        title: '进出库流转管理',
+                        items: ['入库单', '出库单', '调拨单', '盘点单', '库存流水记录']
+                    }
+                ]
+            },
+            fba: {
+                name: 'FBA仓储与补货',
+                icon: 'fa-warehouse',
+                sections: [
+                    {
+                        title: '智能补货建议',
+                        items: ['销量分析', '库存周转分析', '投程时长分析', '补货方案生成']
+                    },
+                    {
+                        title: '货件管理',
+                        items: ['FBA发货计划', '装箱任务管理', '跟踪号同步', '全流程管控']
+                    }
+                ]
+            },
+            logistics: {
+                name: '物流与供应链管理',
+                icon: 'fa-truck',
+                sections: [
+                    {
+                        title: '物流渠道管理',
+                        items: ['物流商列表', '运费试算', '面单打印', '物流轨迹查询']
+                    },
+                    {
+                        title: '采购管理',
+                        items: ['补货建议触发', '采购单创建', '入库质检', '供应商对账']
+                    }
+                ]
+            },
+            finance: {
+                name: '财务与报表管理',
+                icon: 'fa-coins',
+                sections: [
+                    {
+                        title: '精细化利润核算',
+                        items: ['SKU利润报表', '费用明细', '利润趋势分析']
+                    },
+                    {
+                        title: '往来账款管理',
+                        items: ['供应商应付账款', '平台收款流水', '企业费用报销']
+                    }
+                ]
+            }
+        };
+
+        // DOM 元素
+        const hoverMenu = document.getElementById('hoverMenu');
+        const topBar = document.getElementById('topBar');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const menuItems = document.querySelectorAll('.menu-item');
+
+        // 显示加载动画
+        function showLoading() {
+            loadingOverlay.classList.add('active');
+            return new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
+
+        // 生成悬停菜单内容
+        function generateHoverMenu(moduleKey) {
+            const data = moduleData[moduleKey];
+            let html = '<div class="hover-menu-content">';
+
+            data.sections.forEach(section => {
+                html += `
+                    <div class="menu-section">
+                        <h3><i class="fas ${data.icon}"></i> ${section.title}</h3>
+                        ${section.items.map(item => `
+                            <div class="menu-section-item" data-module="${moduleKey}" data-section="${section.title}" data-item="${item}">
+                                <i class="fas fa-angle-right"></i>
+                                ${item}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        // 显示悬停菜单
+        function showHoverMenu(moduleKey) {
+            hoverMenu.innerHTML = generateHoverMenu(moduleKey);
+            hoverMenu.classList.add('show');
+            state.hoverMenuVisible = true;
+
+            // 绑定菜单项点击事件
+            hoverMenu.querySelectorAll('.menu-section-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const module = item.dataset.module;
+                    const section = item.dataset.section;
+                    const itemText = item.dataset.item;
+
+                    // 打开页面
+                    openPage(module, section, itemText);
+
+                    // 隐藏悬停菜单
+                    hoverMenu.classList.remove('show');
+                    state.hoverMenuVisible = false;
+                });
+            });
+        }
+
+        // 隐藏悬停菜单
+        function hideHoverMenu() {
+            if (state.hoverTimeout) clearTimeout(state.hoverTimeout);
+            state.hoverTimeout = setTimeout(() => {
+                hoverMenu.classList.remove('show');
+                state.hoverMenuVisible = false;
+            }, 1000);
+        }
+
+        // 打开页面
+        async function openPage(module, section, item) {
+            // 检查是否已打开
+            const tabKey = `${module}-${section}`;
+            const existingTab = state.openTabs.find(t => t.key === tabKey);
+
+            if (existingTab) {
+                // 激活已存在的标签
+                activateTab(tabKey);
+                return;
+            }
+
+            // 显示加载动画
+            await showLoading();
+
+            // 添加新标签
+            const tab = {
+                key: tabKey,
+                module: module,
+                section: section,
+                item: item,
+                name: `${moduleData[module].name} - ${section}`
+            };
+
+            state.openTabs.push(tab);
+
+            // 更新顶部标签栏
+            renderTabs();
+
+            // 激活页面
+            activateTab(tabKey);
+
+            hideLoading();
+        }
+
+        // 渲染顶部标签
+        function renderTabs() {
+            topBar.innerHTML = state.openTabs.map(tab => `
+                <div class="tab-item ${tab.key === state.activePage ? 'active' : ''}" data-key="${tab.key}">
+                    <span>${tab.section}</span>
+                    <div class="close-btn" data-close="${tab.key}"><i class="fas fa-times"></i></div>
+                </div>
+            `).join('');
+
+            // 绑定事件
+            topBar.querySelectorAll('.tab-item').forEach(tabEl => {
+                tabEl.addEventListener('click', (e) => {
+                    if (!e.target.closest('.close-btn')) {
+                        activateTab(tabEl.dataset.key);
+                    }
+                });
+            });
+
+            topBar.querySelectorAll('.close-btn').forEach(closeBtn => {
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeTab(closeBtn.dataset.close);
+                });
+            });
+        }
+
+        // 激活标签
+        function activateTab(tabKey) {
+            state.activePage = tabKey;
+
+            // 更新标签样式
+            topBar.querySelectorAll('.tab-item').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.key === tabKey);
+            });
+
+            // 显示对应页面
+            const tab = state.openTabs.find(t => t.key === tabKey);
+            if (tab) {
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(`page-${tab.module}`).classList.add('active');
+
+                // 更新侧边栏激活状态
+                menuItems.forEach(item => {
+                    item.classList.toggle('active', item.dataset.module === tab.module);
+                });
+            }
+        }
+
+        // 关闭标签
+        function closeTab(tabKey) {
+            const index = state.openTabs.findIndex(t => t.key === tabKey);
+            if (index > -1) {
+                state.openTabs.splice(index, 1);
+
+                if (state.activePage === tabKey) {
+                    if (state.openTabs.length > 0) {
+                        activateTab(state.openTabs[Math.max(0, index - 1)].key);
+                    } else {
+                        state.activePage = null;
+                        document.querySelectorAll('.page').forEach(page => {
+                            page.classList.remove('active');
+                        });
+                        menuItems.forEach(item => item.classList.remove('active'));
+                    }
+                }
+
+                renderTabs();
+            }
+        }
+
+        // 侧边栏事件
+        menuItems.forEach(item => {
+            // 悬停显示菜单
+            item.addEventListener('mouseenter', () => {
+                if (state.hoverTimeout) clearTimeout(state.hoverTimeout);
+                showHoverMenu(item.dataset.module);
+            });
+
+            // 点击打开第一个核心内容
+            item.addEventListener('click', async () => {
+                const module = item.dataset.module;
+                const data = moduleData[module];
+                const firstSection = data.sections[0].title;
+                const firstItem = data.sections[0].items[0];
+
+                openPage(module, firstSection, firstItem);
+
+                // 隐藏悬停菜单
+                hoverMenu.classList.remove('show');
+                state.hoverMenuVisible = false;
+            });
+        });
+
+        // 悬停菜单区域事件
+        hoverMenu.addEventListener('mouseenter', () => {
+            if (state.hoverTimeout) clearTimeout(state.hoverTimeout);
+        });
+
+        hoverMenu.addEventListener('mouseleave', () => {
+            hideHoverMenu();
+        });
+
+        // 核心内容标签切换
+        document.querySelectorAll('.core-content-tabs').forEach(tabs => {
+            tabs.querySelectorAll('.core-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const content = tab.dataset.content;
+                    const page = tab.closest('.page');
+
+                    // 更新标签样式
+                    tabs.querySelectorAll('.core-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // 显示对应内容
+                    const pageId = page.id.replace('page-', '');
+                    page.querySelectorAll('.content-card').forEach(card => {
+                        card.style.display = 'none';
+                    });
+                    document.getElementById(`${pageId}-${content}`).style.display = 'block';
+                });
+            });
+        });
+
+        // 物流商选择
+        document.querySelectorAll('.logistics-item').forEach(item => {
+            item.addEventListener('click', () => {
+                item.classList.toggle('selected');
+            });
+        });
+
+        // AI悬浮窗
+        const aiFloatBtn = document.getElementById('aiFloatBtn');
+        const aiChatBox = document.getElementById('aiChatBox');
+        const aiCloseBtn = document.getElementById('aiCloseBtn');
+        const aiInput = document.getElementById('aiInput');
+        const aiSendBtn = document.getElementById('aiSendBtn');
+        const aiMessages = document.getElementById('aiMessages');
+
+        aiFloatBtn.addEventListener('click', () => {
+            aiChatBox.classList.toggle('show');
+        });
+
+        aiCloseBtn.addEventListener('click', () => {
+            aiChatBox.classList.remove('show');
+        });
+
+        // AI对话
+        function sendAiMessage() {
+            const text = aiInput.value.trim();
+            if (!text) return;
+
+            // 添加用户消息
+            aiMessages.innerHTML += `
+                <div class="ai-message user">
+                    <p>${text}</p>
+                </div>
+            `;
+
+            aiInput.value = '';
+
+            // 模拟AI回复
+            setTimeout(() => {
+                aiMessages.innerHTML += `
+                    <div class="ai-message assistant">
+                        <p>我已收到您的问题："${text}"。这是一个演示系统，实际功能需要连接后端AI服务。我可以帮助您进行商品描述生成、多语言翻译、差评分析等任务。</p>
+                    </div>
+                `;
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            }, 500);
+
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
+
+        aiSendBtn.addEventListener('click', sendAiMessage);
+        aiInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendAiMessage();
+        });
+
+        // AI建议点击
+        document.querySelectorAll('.ai-suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                aiInput.value = item.textContent.trim();
+                sendAiMessage();
+            });
+        });
+    </script>
+</body>
+</html>
