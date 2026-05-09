@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金牌客服系统</title>
+  <style>
+    /* ─── 设计令牌 ─── */
+    :root {
+      --bg:           #FFFFFF;
+      --bg-subtle:    #F9F9F8;
+      --bg-hover:     #F4F4F2;
+      --surface:      #FFFFFF;
+      --text-1:       #34322D;
+      --text-2:       #6B6860;
+      --text-3:       #9B9890;
+      --text-4:       #C4C1B8;
+      --border:       #E5E7EB;
+      --border-soft:  rgba(0,0,0,0.06);
+      --btn-primary-bg:   #1A1A19;
+      --btn-primary-text: #FFFFFF;
+      --btn-ghost-bg:     transparent;
+      --btn-ghost-text:   #34322D;
+      --btn-ghost-border: rgba(0,0,0,0.10);
+      --radius-sm:   8px;
+      --radius-md:   12px;
+      --radius-lg:   22px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07);
+    }
+    [data-theme="dark"] {
+      --bg:           #1A1A18;
+      --bg-subtle:    #222220;
+      --bg-hover:     #2A2A28;
+      --surface:      #242422;
+      --text-1:       #F0EFE8;
+      --text-2:       #A8A59C;
+      --text-3:       #706D64;
+      --text-4:       #504D46;
+      --border:       rgba(255,255,255,0.08);
+      --border-soft:  rgba(255,255,255,0.05);
+      --btn-primary-bg:   #F0EFE8;
+      --btn-primary-text: #1A1A18;
+      --btn-ghost-bg:     transparent;
+      --btn-ghost-text:   #A8A59C;
+      --btn-ghost-border: rgba(255,255,255,0.10);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { -webkit-font-smoothing:antialiased; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                   "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+      font-size: 16px; line-height: 1.6;
+      background: var(--bg); color: var(--text-1);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background .3s, color .3s;
+    }
+
+    /* ─── 顶部导航 ─── */
+    .nav {
+      position: fixed; top:0; left:0; right:0; z-index:200;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      transition: background .3s, border-color .3s;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 500; color: var(--text-1);
+      text-decoration: none;
+    }
+    .nav-logo-mark {
+      width: 28px; height: 28px;
+      background: var(--btn-primary-bg);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .3s;
+    }
+    .nav-logo-mark svg { width: 16px; height: 16px; }
+    .nav-right { display: flex; align-items: center; gap: 8px; position:relative; z-index:201; }
+    .btn-ghost {
+      height: 34px; padding: 0 14px;
+      background: var(--btn-ghost-bg);
+      border: 1px solid var(--btn-ghost-border);
+      border-radius: var(--radius-sm);
+      color: var(--btn-ghost-text);
+      font-size: 13px; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center;
+      transition: background .15s;
+    }
+    .btn-ghost:hover { background: var(--bg-hover); }
+    .btn-primary {
+      height: 34px; padding: 0 16px;
+      background: var(--btn-primary-bg);
+      border: none; border-radius: var(--radius-sm);
+      color: var(--btn-primary-text);
+      font-size: 13px; font-weight: 500; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center;
+      transition: opacity .15s, background .3s, color .3s;
+    }
+    .btn-primary:hover { opacity: .88; }
+
+    /* ─── 装饰层（pointer-events:none 不影响交互）─── */
+    #deco-layer {
+      position: fixed; top: 0; right: 0;
+      width: 480px; height: 480px;
+      pointer-events: none;
+      z-index: 1;
+      overflow: visible;
+    }
+    /* 梅花 SVG 容器 */
+    #plum-svg {
+      position: absolute; top: 0; right: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+    /* 银河 Canvas：铺满全屏，无边框 */
+    #galaxy-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      display: none;
+      pointer-events: none;
+    }
+
+    /* ─── 主体布局（全宽，左右无留白）─── */
+    .main {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 56px 0 0;       /* 顶部 = 导航高度 */
+      min-height: 100vh;
+      position: relative; z-index: 10;
+    }
+    .hero-inner {
+      width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 80px 32px 60px;
+    }
+
+    /* ─── 标语 ─── */
+    .hero-eyebrow {
+      font-size: 13px; color: var(--text-3);
+      margin-bottom: 20px; letter-spacing: 0.02em;
+    }
+    .hero-title {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 400; color: var(--text-1);
+      text-align: center; line-height: 1.2;
+      margin-bottom: 48px; max-width: 640px;
+    }
+
+    /* ─── 主搜索框 ─── */
+    .search-cta-wrap { margin-bottom: 48px; width: 100%; max-width: 560px; }
+    .search-cta {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; height: 68px; padding: 0 24px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-md);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .search-cta:focus-within {
+      border-color: var(--btn-primary-bg);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+    .search-cta-icon {
+      width: 24px; height: 24px;
+      color: var(--text-3);
+      flex-shrink: 0;
+    }
+    .search-cta-input {
+      flex: 1;
+      border: none; outline: none;
+      background: transparent;
+      font-size: 17px; color: var(--text-1);
+      font-family: inherit;
+    }
+    .search-cta-input::placeholder { color: var(--text-4); }
+    .search-cta-btn {
+      height: 44px; padding: 0 24px;
+      background: var(--btn-primary-bg);
+      border: none; border-radius: var(--radius-full);
+      color: var(--btn-primary-text);
+      font-size: 15px; font-weight: 500; font-family: inherit;
+      cursor: pointer;
+      transition: opacity .15s, background .3s, color .3s;
+    }
+    .search-cta-btn:hover { opacity: .88; }
+    .search-cta-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .search-cta-hint {
+      font-size: 12px; color: var(--text-4);
+      text-align: center;
+      margin-top: 12px;
+    }
+    .search-loading { display: none; }
+    .search-loading.show { display: block; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--btn-primary-bg);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── 状态区 ─── */
+    .status-section { width:100%; max-width:720px; margin-bottom:36px; padding:0 32px; }
+    .status-label {
+      font-size:11px; color:var(--text-4);
+      text-transform:uppercase; letter-spacing:0.06em;
+      margin-bottom:8px;
+    }
+    .status-list { display:flex; gap:8px; flex-wrap:wrap; }
+    .status-chip {
+      height:30px; padding:0 12px;
+      background:var(--bg-subtle); border:1px solid var(--border);
+      border-radius:var(--radius-full);
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:12px; color:var(--text-2);
+    }
+    .status-dot { width:6px; height:6px; border-radius:50%; background:var(--text-4); flex-shrink:0; }
+    .dot-ok      { background:#22C55E; }
+    .dot-err     { background:#EF4444; }
+    .dot-loading { background:#F59E0B; animation:pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ─── 特性格（全宽三列）─── */
+    .features {
+      width: 100%;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--border);
+    }
+    .feat-cell {
+      background: var(--surface);
+      padding: 36px 40px;
+      border-right: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .feat-cell:last-child { border-right: none; }
+    .feat-cell:hover { background: var(--bg-hover); }
+    .feat-icon  { font-size:24px; margin-bottom:14px; }
+    .feat-title { font-size:14px; font-weight:500; color:var(--text-1); margin-bottom:6px; }
+    .feat-desc  { font-size:13px; color:var(--text-3); line-height:1.6; }
+
+    /* ─── 底部标语 ─── */
+    .tagline {
+      width:100%; padding:20px 32px;
+      font-size:12px; color:var(--text-4);
+      text-align:center; letter-spacing:0.04em;
+      border-top:1px solid var(--border);
+    }
+
+    /* 飘落 */
+    #gift-anim{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}
+    .gift-item{position:absolute;top:-50px;font-size:18px;opacity:.35;animation:fall linear forwards;}
+    @keyframes fall{0%{transform:translateY(-50px) rotate(0deg);opacity:0}8%{opacity:.35}92%{opacity:.1}100%{transform:translateY(100vh) rotate(300deg);opacity:0}}
+
+    @media(max-width:700px){
+      .features { grid-template-columns:1fr; }
+      .feat-cell { border-right:none; border-bottom:1px solid var(--border); }
+      .hero-title { font-size:28px; }
+      .btn-cta { height:58px; padding:0 40px; font-size:17px; }
+      #deco-layer { width:260px; height:260px; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    (function(){ var t=localStorage.getItem('theme'); if(t==='dark') document.documentElement.setAttribute('data-theme','dark'); })();
+  </script>
+
+  <div id="gift-anim"></div>
+
+  <!-- 装饰层：梅花 SVG + 银河 Canvas -->
+  <div id="deco-layer">
+    <!-- 浅色：梅花枝叶 SVG（缓慢生长，5秒）-->
+    <svg id="plum-svg" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- 枝干路径动画：stroke-dashoffset 从总长→0，模拟生长 -->
+        <style>
+          .branch {
+            fill: none;
+            stroke: #5C3317;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+          }
+          /* 主干 */
+          .b0 { stroke-width:5; stroke-dasharray:320; stroke-dashoffset:320;
+                animation: grow 5s cubic-bezier(.4,0,.2,1) forwards; }
+          /* 一级枝 */
+          .b1 { stroke-width:3.5; stroke-dasharray:200; stroke-dashoffset:200;
+                animation: grow 5s cubic-bezier(.4,0,.2,1) forwards; animation-delay:.6s; }
+          .b2 { stroke-width:3; stroke-dasharray:180; stroke-dashoffset:180;
+                animation: grow 5s cubic-bezier(.4,0,.2,1) forwards; animation-delay:.9s; }
+          /* 二级枝 */
+          .b3 { stroke-width:2.2; stroke-dasharray:130; stroke-dashoffset:130;
+                animation: grow 4.5s cubic-bezier(.4,0,.2,1) forwards; animation-delay:1.4s; }
+          .b4 { stroke-width:2; stroke-dasharray:110; stroke-dashoffset:110;
+                animation: grow 4.5s cubic-bezier(.4,0,.2,1) forwards; animation-delay:1.7s; }
+          .b5 { stroke-width:1.8; stroke-dasharray:100; stroke-dashoffset:100;
+                animation: grow 4s cubic-bezier(.4,0,.2,1) forwards; animation-delay:2s; }
+          .b6 { stroke-width:1.6; stroke-dasharray:90; stroke-dashoffset:90;
+                animation: grow 4s cubic-bezier(.4,0,.2,1) forwards; animation-delay:2.2s; }
+          /* 三级细枝 */
+          .b7,.b8,.b9,.b10 {
+                stroke-width:1.2; stroke-dasharray:70; stroke-dashoffset:70;
+                animation: grow 3.5s cubic-bezier(.4,0,.2,1) forwards; }
+          .b7  { animation-delay:2.6s; }
+          .b8  { animation-delay:2.9s; }
+          .b9  { animation-delay:3.1s; }
+          .b10 { animation-delay:3.3s; }
+
+          @keyframes grow { to { stroke-dashoffset: 0; } }
+
+          /* 花朵：先透明，生长到位后淡入 */
+          .petal-group { opacity:0; }
+          .pg0  { animation: bloom .8s ease forwards; animation-delay:1.8s; }
+          .pg1  { animation: bloom .8s ease forwards; animation-delay:2.2s; }
+          .pg2  { animation: bloom .8s ease forwards; animation-delay:2.5s; }
+          .pg3  { animation: bloom .8s ease forwards; animation-delay:2.8s; }
+          .pg4  { animation: bloom .8s ease forwards; animation-delay:3.1s; }
+          .pg5  { animation: bloom .8s ease forwards; animation-delay:3.4s; }
+          .pg6  { animation: bloom .8s ease forwards; animation-delay:3.6s; }
+          .pg7  { animation: bloom .8s ease forwards; animation-delay:3.8s; }
+          .pg8  { animation: bloom .8s ease forwards; animation-delay:4.0s; }
+          .pg9  { animation: bloom .8s ease forwards; animation-delay:4.2s; }
+          .pg10 { animation: bloom .8s ease forwards; animation-delay:4.4s; }
+          .pg11 { animation: bloom .8s ease forwards; animation-delay:4.6s; }
+          @keyframes bloom { from{opacity:0;transform:scale(.4);} to{opacity:1;transform:scale(1);} }
+
+          /* 花苞（小圆）*/
+          .bud { fill:#FF6B9D; opacity:0; animation: bloom .6s ease forwards; }
+          .bud0 { animation-delay:2.0s; }
+          .bud1 { animation-delay:2.4s; }
+          .bud2 { animation-delay:2.8s; }
+          .bud3 { animation-delay:3.2s; }
+          .bud4 { animation-delay:3.6s; }
+          .bud5 { animation-delay:4.0s; }
+        </style>
+      </defs>
+
+      <!-- ── 枝干 ── -->
+      <!-- 主干：从右下角向左上生长 -->
+      <path class="branch b0" d="M480,480 C440,420 400,360 360,290 C330,240 310,200 290,150"/>
+      <!-- 一级枝 -->
+      <path class="branch b1" d="M380,320 C350,290 320,260 280,230 C260,215 240,200 210,185"/>
+      <path class="branch b2" d="M340,260 C370,230 390,200 410,165 C425,140 435,115 440,85"/>
+      <!-- 二级枝 -->
+      <path class="branch b3" d="M290,150 C265,130 240,115 210,100 C190,90 170,82 145,75"/>
+      <path class="branch b4" d="M290,150 C310,125 325,100 335,72 C342,52 345,35 344,15"/>
+      <path class="branch b5" d="M210,185 C185,170 160,158 132,148 C112,140 92,135 68,130"/>
+      <path class="branch b6" d="M210,185 C220,158 228,132 232,105 C235,85 234,65 230,45"/>
+      <!-- 三级细枝 -->
+      <path class="branch b7"  d="M145,75  C120,65 95,58 68,55"/>
+      <path class="branch b8"  d="M145,75  C148,52 148,30 144,10"/>
+      <path class="branch b9"  d="M68,130  C48,118 30,105 12,90"/>
+      <path class="branch b10" d="M440,85  C455,65 465,42 468,18"/>
+
+      <!-- ── 花朵（每朵5瓣，梅花形）── -->
+      <!-- 花朵辅助宏：用 <g transform="translate(cx,cy)"> 包裹5个椭圆 -->
+
+      <!-- pg0 @ 290,150 -->
+      <g class="petal-group pg0" transform="translate(290,150)" style="transform-origin:290px 150px">
+        <ellipse cx="0" cy="-9" rx="5" ry="8" fill="#FF3D7F" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-9" rx="5" ry="8" fill="#FF6FAE" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-9" rx="5" ry="8" fill="#FF3D7F" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-9" rx="5" ry="8" fill="#FF6FAE" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-9" rx="5" ry="8" fill="#FF3D7F" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="3" fill="#FFD700"/>
+      </g>
+
+      <!-- pg1 @ 210,185 -->
+      <g class="petal-group pg1" transform="translate(210,185)" style="transform-origin:210px 185px">
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF1A6C" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF69B4" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF1A6C" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF69B4" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF1A6C" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.5" fill="#FFE066"/>
+      </g>
+
+      <!-- pg2 @ 145,75 -->
+      <g class="petal-group pg2" transform="translate(145,75)" style="transform-origin:145px 75px">
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF4499" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF88CC" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF4499" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF88CC" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF4499" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.5" fill="#FFD700"/>
+      </g>
+
+      <!-- pg3 @ 344,15 -->
+      <g class="petal-group pg3" transform="translate(344,20)" style="transform-origin:344px 20px">
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF2277" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF77BB" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF2277" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF77BB" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF2277" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.2" fill="#FFEE44"/>
+      </g>
+
+      <!-- pg4 @ 440,85 -->
+      <g class="petal-group pg4" transform="translate(440,85)" style="transform-origin:440px 85px">
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF3388" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF88CC" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF3388" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF88CC" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF3388" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.5" fill="#FFD700"/>
+      </g>
+
+      <!-- pg5 @ 68,130 -->
+      <g class="petal-group pg5" transform="translate(68,130)" style="transform-origin:68px 130px">
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF1166" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF66AA" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF1166" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF66AA" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF1166" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.2" fill="#FFE066"/>
+      </g>
+
+      <!-- pg6 @ 230,45 -->
+      <g class="petal-group pg6" transform="translate(230,45)" style="transform-origin:230px 45px">
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF4488" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF99CC" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF4488" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF99CC" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF4488" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.2" fill="#FFD700"/>
+      </g>
+
+      <!-- pg7 @ 280,230 -->
+      <g class="petal-group pg7" transform="translate(280,230)" style="transform-origin:280px 230px">
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF2266" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF77BB" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF2266" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF77BB" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-8" rx="4.5" ry="7" fill="#FF2266" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.5" fill="#FFE066"/>
+      </g>
+
+      <!-- pg8 @ 410,165 -->
+      <g class="petal-group pg8" transform="translate(410,165)" style="transform-origin:410px 165px">
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF3377" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF88BB" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF3377" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF88BB" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF3377" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.2" fill="#FFD700"/>
+      </g>
+
+      <!-- pg9 @ 132,148 -->
+      <g class="petal-group pg9" transform="translate(132,148)" style="transform-origin:132px 148px">
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF1155" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF66AA" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF1155" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF66AA" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-7" rx="4" ry="6.5" fill="#FF1155" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2.2" fill="#FFEE44"/>
+      </g>
+
+      <!-- pg10 @ 68,55 -->
+      <g class="petal-group pg10" transform="translate(68,55)" style="transform-origin:68px 55px">
+        <ellipse cx="0" cy="-6.5" rx="3.8" ry="6" fill="#FF3388" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-6.5" rx="3.8" ry="6" fill="#FF99CC" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-6.5" rx="3.8" ry="6" fill="#FF3388" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-6.5" rx="3.8" ry="6" fill="#FF99CC" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-6.5" rx="3.8" ry="6" fill="#FF3388" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2" fill="#FFD700"/>
+      </g>
+
+      <!-- pg11 @ 468,18 -->
+      <g class="petal-group pg11" transform="translate(468,22)" style="transform-origin:468px 22px">
+        <ellipse cx="0" cy="-6" rx="3.5" ry="5.5" fill="#FF2277" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-6" rx="3.5" ry="5.5" fill="#FF88BB" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-6" rx="3.5" ry="5.5" fill="#FF2277" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-6" rx="3.5" ry="5.5" fill="#FF88BB" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-6" rx="3.5" ry="5.5" fill="#FF2277" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="2" fill="#FFEE44"/>
+      </g>
+
+      <!-- 花苞（小圆点）-->
+      <circle class="bud bud0" cx="335" cy="72"  r="4"/>
+      <circle class="bud bud1" cx="144" cy="10"  r="3.5"/>
+      <circle class="bud bud2" cx="12"  cy="90"  r="3.5"/>
+      <circle class="bud bud3" cx="468" cy="18"  r="3"/>
+      <circle class="bud bud4" cx="232" cy="105" r="3.5"/>
+      <circle class="bud bud5" cx="380" cy="320" r="4"/>
+    </svg>
+
+    <!-- 深色：银河 Canvas（全屏，JS 动态设置尺寸）-->
+    <canvas id="galaxy-canvas"></canvas>
+  </div>
+
+  <!-- 导航 -->
+  <nav class="nav">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M8 2C4.686 2 2 4.686 2 8s2.686 6 6 6 6-2.686 6-6-2.686-6-6-6zm-1 8.5v-5l4 2.5-4 2.5z" fill="currentColor" style="color:#fff"/>
+        </svg>
+      </div>
+      金牌客服
+    </a>
+    <div class="nav-right">
+      <button class="btn-ghost" id="themeBtn">深色</button>
+    </div>
+  </nav>
+
+  <!-- 主体 -->
+  <main class="main">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">Gold Customer Service System</p>
+      <h1 class="hero-title">有什么可以帮您？</h1>
+
+      <!-- 主搜索框 -->
+      <div class="search-cta-wrap">
+        <div class="search-cta">
+          <svg class="search-cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input type="text" id="searchInput" class="search-cta-input" placeholder="请输入手机号或客户ID" maxlength="20" autocomplete="off">
+          <button type="button" id="searchBtn" class="search-cta-btn">开始咨询</button>
+        </div>
+        <div class="search-cta-hint">请输入您的手机号或客户ID</div>
+      </div>
+
+      <!-- 系统状态 -->
+      <div class="status-section">
+        <div class="status-label">系统状态</div>
+        <div class="status-list">
+          <div class="status-chip">
+            <div class="status-dot dot-loading" id="dot-neo4j"></div>
+            <span id="val-neo4j">Neo4j 检测中…</span>
+          </div>
+          <div class="status-chip">
+            <div class="status-dot dot-loading" id="dot-graphrag"></div>
+            <span id="val-graphrag">GraphRAG 检测中…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 特性格（全宽）-->
+    <div class="features">
+      <div class="feat-cell">
+        <div class="feat-title">隐私保护</div>
+        <div class="feat-desc">客户信息完全隔离，数据安全有保障</div>
+      </div>
+      <div class="feat-cell">
+        <div class="feat-title">AI 智能回复</div>
+        <div class="feat-desc">GraphRAG 驱动，提供高情绪价值服务</div>
+      </div>
+      <div class="feat-cell">
+        <div class="feat-title">完整档案</div>
+        <div class="feat-desc">订单、情绪、偏好全面记录与分析</div>
+      </div>
+    </div>
+
+    <p class="tagline">和平合作 · 开放包容 · 互学互鉴 · 互利互赢</p>
+  </main>
+
+  <script>
+  /* ── 飘落礼物 ── */
+  (function(){
+    var c=document.getElementById('gift-anim');
+    var items=['🎀','🔔','🎁','🧧','🎉'];
+    function mk(){ var el=document.createElement('div'); el.className='gift-item'; el.textContent=items[Math.floor(Math.random()*items.length)]; el.style.left=Math.random()*95+'%'; el.style.animationDuration=(4+Math.random()*3)+'s'; el.style.animationDelay=Math.random()*1.5+'s'; c.appendChild(el); setTimeout(function(){el.remove();},7000); }
+    for(var i=0;i<8;i++) setTimeout(mk,i*550);
+    setTimeout(function(){ c.style.transition='opacity 1s'; c.style.opacity='0'; setTimeout(function(){c.remove();},1000); },5000);
+  })();
+
+  /* ── 银河 Canvas 动画（全屏无边框版）── */
+  (function(){
+    var canvas = document.getElementById('galaxy-canvas');
+    var ctx = canvas.getContext('2d');
+    var W, H;
+    var stars = [];
+    var nebula = [];
+    var raf = null;
+    var startTime = null;
+    var DURATION = 5000;
+    var running = false;
+
+    function resize(){
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function initStars(){
+      resize();
+      stars = []; nebula = [];
+      // 银河主轴：从右上角(W, 0) 向左下 (W*0.1, H*0.7) 弧形延伸
+      var ex = W * 0.05, ey = H * 0.72;
+      var sx = W,        sy = 0;
+      for(var i=0;i<420;i++){
+        var t = Math.random();
+        var bx = sx + (ex-sx)*t;
+        var by = sy + (ey-sy)*t;
+        // 银河宽度：中间宽两端窄
+        var spread = 90 * Math.sin(Math.PI * t) + 20;
+        var angle = Math.atan2(ey-sy, ex-sx) + Math.PI/2;
+        var ox = Math.cos(angle)*(Math.random()-0.5)*spread;
+        var oy = Math.sin(angle)*(Math.random()-0.5)*spread;
+        stars.push({
+          x: bx+ox, y: by+oy,
+          r: Math.random()*1.8+0.3,
+          brightness: Math.random(),
+          twinkleSpeed: 0.8+Math.random()*2,
+          twinklePhase: Math.random()*Math.PI*2,
+          flowT: t,
+          color: randomStarColor(),
+          revealDelay: t * 0.68
+        });
+      }
+      // 零散背景星（整个右半屏）
+      for(var j=0;j<100;j++){
+        stars.push({
+          x: W*0.3 + Math.random()*W*0.7,
+          y: Math.random()*H*0.75,
+          r: Math.random()*0.9+0.2,
+          brightness: Math.random()*0.4+0.1,
+          twinkleSpeed: 0.5+Math.random()*1.5,
+          twinklePhase: Math.random()*Math.PI*2,
+          flowT: Math.random(),
+          color: '#FFFFFF',
+          revealDelay: 0.2+Math.random()*0.7
+        });
+      }
+      // 星云
+      for(var k=0;k<16;k++){
+        var nt = Math.random();
+        var nbx = sx+(ex-sx)*nt;
+        var nby = sy+(ey-sy)*nt;
+        var nspread = 80*Math.sin(Math.PI*nt)+10;
+        var nangle = Math.atan2(ey-sy,ex-sx)+Math.PI/2;
+        nebula.push({
+          x: nbx+Math.cos(nangle)*(Math.random()-0.5)*nspread,
+          y: nby+Math.sin(nangle)*(Math.random()-0.5)*nspread,
+          r: 50+Math.random()*80,
+          color: nebulaColor(),
+          alpha: 0.035+Math.random()*0.06,
+          flowT: nt
+        });
+      }
+    }
+
+    function randomStarColor(){
+      var c=['#FFFFFF','#E8F0FF','#FFE8D0','#D0E8FF','#FFF0E0','#C8D8FF','#FFD0C0'];
+      return c[Math.floor(Math.random()*c.length)];
+    }
+    function nebulaColor(){
+      var c=['#4466FF','#8844FF','#FF4488','#44AAFF','#AA44FF','#6644CC'];
+      return c[Math.floor(Math.random()*c.length)];
+    }
+    function hexToRgba(hex,a){
+      if(hex==='#FFFFFF') return 'rgba(255,255,255,'+a+')';
+      var r=parseInt(hex.slice(1,3),16);
+      var g=parseInt(hex.slice(3,5),16);
+      var b=parseInt(hex.slice(5,7),16);
+      return 'rgba('+r+','+g+','+b+','+a+')';
+    }
+
+    function draw(ts){
+      if(!startTime) startTime=ts;
+      var elapsed = ts-startTime;
+      var progress = Math.min(elapsed/DURATION, 1);
+
+      ctx.clearRect(0,0,W,H);
+
+      // ── 不填充背景色，完全透明，与页面背景融合 ──
+
+      // 星云光晕
+      nebula.forEach(function(n){
+        var reveal = Math.max(0, Math.min(1,(progress-n.flowT*0.5)/0.4));
+        if(reveal<=0) return;
+        var g2 = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+        g2.addColorStop(0, hexToRgba(n.color, n.alpha*reveal));
+        g2.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle=g2;
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+      });
+
+      // 星星
+      var now = ts/1000;
+      stars.forEach(function(s){
+        var reveal = Math.max(0, Math.min(1,(progress-s.revealDelay)/0.25));
+        if(reveal<=0) return;
+        var twinkle = 0.5+0.5*Math.sin(now*s.twinkleSpeed+s.twinklePhase);
+        var alpha = reveal*(0.4+0.6*twinkle)*(0.5+s.brightness*0.5);
+        var flowOffset = Math.sin(now*0.3+s.flowT*Math.PI*2)*2;
+        var ex2=W*0.05, ey2=H*0.72;
+        var angle2 = Math.atan2(ey2,ex2-W)+Math.PI/2;
+        var fx = s.x+Math.cos(angle2)*flowOffset;
+        var fy = s.y+Math.sin(angle2)*flowOffset;
+
+        // 边缘渐隐：离四边越近越透明
+        var edgeFade = Math.min(
+          fx/W, (W-fx)/W,
+          fy/H, (H-fy)/H
+        );
+        edgeFade = Math.min(1, edgeFade * 8); // 边缘 12.5% 内渐隐
+        alpha *= edgeFade;
+        if(alpha<=0.01) return;
+
+        if(s.r>1.2){
+          var glow=ctx.createRadialGradient(fx,fy,0,fx,fy,s.r*5);
+          glow.addColorStop(0, hexToRgba(s.color, alpha*0.35));
+          glow.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle=glow;
+          ctx.beginPath(); ctx.arc(fx,fy,s.r*5,0,Math.PI*2); ctx.fill();
+        }
+        ctx.fillStyle=hexToRgba(s.color,alpha);
+        ctx.beginPath(); ctx.arc(fx,fy,s.r,0,Math.PI*2); ctx.fill();
+      });
+
+      // ── 四周渐隐遮罩（用页面背景色从边缘向内渐变覆盖）──
+      // 深色背景色 #1A1A18
+      var edgeColor = '26,26,24';
+      // 上边
+      var mt=ctx.createLinearGradient(0,0,0,H*0.18);
+      mt.addColorStop(0,'rgba('+edgeColor+',1)'); mt.addColorStop(1,'rgba('+edgeColor+',0)');
+      ctx.fillStyle=mt; ctx.fillRect(0,0,W,H*0.18);
+      // 下边
+      var mb=ctx.createLinearGradient(0,H,0,H*0.72);
+      mb.addColorStop(0,'rgba('+edgeColor+',1)'); mb.addColorStop(1,'rgba('+edgeColor+',0)');
+      ctx.fillStyle=mb; ctx.fillRect(0,H*0.72,W,H*0.28);
+      // 左边
+      var ml=ctx.createLinearGradient(0,0,W*0.25,0);
+      ml.addColorStop(0,'rgba('+edgeColor+',1)'); ml.addColorStop(1,'rgba('+edgeColor+',0)');
+      ctx.fillStyle=ml; ctx.fillRect(0,0,W*0.25,H);
+      // 右边（银河起点，轻微渐隐）
+      var mr=ctx.createLinearGradient(W,0,W*0.88,0);
+      mr.addColorStop(0,'rgba('+edgeColor+',0.7)'); mr.addColorStop(1,'rgba('+edgeColor+',0)');
+      ctx.fillStyle=mr; ctx.fillRect(W*0.88,0,W*0.12,H);
+
+      if(running) raf=requestAnimationFrame(draw);
+    }
+
+    function startGalaxy(){
+      if(running) return;
+      running=true; startTime=null;
+      initStars();
+      canvas.style.display='block';
+      raf=requestAnimationFrame(draw);
+    }
+    function stopGalaxy(){
+      running=false;
+      if(raf) cancelAnimationFrame(raf);
+      ctx.clearRect(0,0,W,H);
+      canvas.style.display='none';
+    }
+
+    window.addEventListener('resize', function(){
+      if(running){ initStars(); }
+    });
+
+    window._galaxyStart = startGalaxy;
+    window._galaxyStop  = stopGalaxy;
+  })();
+
+  /* ── 梅花 SVG 重播 ── */
+  (function(){
+    window._plumRestart = function(){
+      var svg = document.getElementById('plum-svg');
+      // 重置动画：克隆替换
+      var clone = svg.cloneNode(true);
+      svg.parentNode.replaceChild(clone, svg);
+    };
+  })();
+
+  /* ── 主题切换 ── */
+  (function(){
+    var btn = document.getElementById('themeBtn');
+    var plumSvg = document.getElementById('plum-svg');
+
+    function apply(t){
+      if(t==='dark'){
+        document.documentElement.setAttribute('data-theme','dark');
+        btn.textContent='浅色';
+        // 隐藏梅花，启动银河
+        document.getElementById('plum-svg') && (document.getElementById('plum-svg').style.display='none');
+        window._galaxyStart && window._galaxyStart();
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        btn.textContent='深色';
+        // 停止银河，显示梅花并重播
+        window._galaxyStop && window._galaxyStop();
+        var ps = document.getElementById('plum-svg');
+        if(ps){ ps.style.display='block'; }
+        window._plumRestart && window._plumRestart();
+      }
+    }
+
+    var saved = localStorage.getItem('theme')||'light';
+    apply(saved);
+
+    btn.addEventListener('click',function(){
+      var cur = document.documentElement.getAttribute('data-theme');
+      var next = cur==='dark'?'light':'dark';
+      apply(next);
+      localStorage.setItem('theme',next);
+    });
+  })();
+
+  /* ── 搜索功能 ── */
+  (function(){
+    var searchInput = document.getElementById('searchInput');
+    var searchBtn = document.getElementById('searchBtn');
+
+    function restoreSearchBtn(){
+      searchBtn.disabled = false;
+      searchBtn.removeAttribute('aria-busy');
+      searchBtn.textContent = '开始咨询';
+    }
+
+    // 从 /customer 浏览器「返回」时页面常从 bfcache 还原，按钮会卡在 disabled + spinner
+    window.addEventListener('pageshow', function(ev){
+      if (ev.persisted) restoreSearchBtn();
+    });
+
+    function doSearch(){
+      var query = (searchInput.value || '').trim();
+      if(!query) return;
+
+      searchBtn.disabled = true;
+      searchBtn.setAttribute('aria-busy', 'true');
+      searchBtn.innerHTML = '<span class="spinner"></span>';
+
+      var payload = /^\d{11}$/.test(query) ? {phone: query} : {customer_id: query};
+      var timeoutId = setTimeout(function(){ restoreSearchBtn(); }, 15000);
+
+      fetch('/api/customer/start', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      })
+      .then(function(r){
+        clearTimeout(timeoutId);
+        if(!r.ok) throw new Error('请求失败');
+        return r.json();
+      })
+      .then(function(data){
+        if(data && data.success && data.session_id){
+          localStorage.setItem('cust_session_id', data.session_id);
+          localStorage.setItem('cust_customer_info', JSON.stringify(data.customer_info || {}));
+          window.location.href = '/customer?session_id=' + encodeURIComponent(data.session_id);
+          return;
+        }
+        restoreSearchBtn();
+        alert((data && data.message) || '未找到客户信息，请检查手机号或客户ID');
+      })
+      .catch(function(){
+        clearTimeout(timeoutId);
+        restoreSearchBtn();
+        alert('网络错误或请求超时，请稍后重试');
+      });
+    }
+
+    // 按钮点击搜索
+    searchBtn.addEventListener('click', doSearch);
+
+    // 回车键搜索
+    searchInput.addEventListener('keypress', function(e){
+      if(e.key === 'Enter') doSearch();
+    });
+  })();
+
+  /* ── 状态检测 ── */
+  (function(){
+    function set(key, ok, text){
+      var d=document.getElementById('dot-'+key);
+      var v=document.getElementById('val-'+key);
+      if(d) d.className='status-dot '+(ok?'dot-ok':'dot-err');
+      if(v) v.textContent=text;
+    }
+    var t=setTimeout(function(){ set('neo4j',false,'Neo4j 超时'); set('graphrag',false,'GraphRAG 超时'); },8000);
+    var statusUrl = (window.location.origin || '') + '/api/status';
+    fetch(statusUrl, { credentials: 'same-origin', cache: 'no-store' })
+      .then(function(r){ return r.text().then(function(body){ return { ok: r.ok, status: r.status, body: body }; }); })
+      .then(function(p){
+        clearTimeout(t);
+        var d;
+        try { d = JSON.parse(p.body); } catch (e) {
+          set('neo4j',false,'Neo4j 响应异常');
+          set('graphrag',false,'GraphRAG 响应异常');
+          return;
+        }
+        if (!p.ok) {
+          set('neo4j',false,'Neo4j HTTP '+p.status);
+          set('graphrag',false,'GraphRAG HTTP '+p.status);
+          return;
+        }
+        // 支持新旧两种格式：旧格式直接用 d.neo4j/d.graphrag，新格式用 d.checks.*
+        var neo4jOk = d.neo4j !== undefined ? d.neo4j : (d.checks && d.checks.neo4j);
+        var graphragOk = d.graphrag !== undefined ? d.graphrag : (d.checks && d.checks.graphrag);
+        set('neo4j',!!neo4jOk,'Neo4j '+(neo4jOk?'已连接':'未连接'));
+        set('graphrag',!!graphragOk,'GraphRAG '+(graphragOk?'就绪':'未启动'));
+      })
+      .catch(function(){ clearTimeout(t); set('neo4j',false,'Neo4j 连接失败'); set('graphrag',false,'GraphRAG 连接失败'); });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# ============================================================
+# Chaos Experiment: redis-failure
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/redis-failure.yaml
+# 查看状态:
+#   kubectl get workflow redis-failure-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/redis-failure.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  experiment: redis-failure
+  expected_degradation:
+  - 限流退化为内存模式
+  - Session 降级为无持久化
+  - AI 响应降级（无缓存）
+spec:
+  action: pod-failure
+  mode: all
+  duration: 120s
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: ruitalk-redis

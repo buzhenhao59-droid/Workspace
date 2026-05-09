@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>全部订单 · Ruitalk</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    :root {
+      --bg:           #FFFFFF;
+      --bg-subtle:    #F9F9F8;
+      --bg-hover:     #F4F4F2;
+      --surface:      #FFFFFF;
+      --text-1:       #34332D;
+      --text-2:       #6B6860;
+      --text-3:       #9B9890;
+      --text-4:       #C4C1B8;
+      --border:       #E5E7EB;
+      --border-soft:  rgba(0,0,0,0.06);
+      --btn-primary-bg:   #1A1A19;
+      --btn-primary-text: #FFFFFF;
+      --sidebar-w:    200px;
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-full:  9999px;
+      --shadow-sm:    0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md:    0 4px 16px rgba(0,0,0,0.07);
+      --tag-amber-bg:   rgba(245,158,11,0.10);
+      --tag-amber-text: #B45309;
+      --tag-blue-bg:    rgba(59,130,246,0.10);
+      --tag-blue-text:  #2563EB;
+      --tag-green-bg:   rgba(34,197,94,0.10);
+      --tag-green-text: #16A34A;
+      --tag-gray-bg:    rgba(107,114,128,0.10);
+      --tag-gray-text:  #374151;
+      --tag-purple-bg:  rgba(139,92,246,0.10);
+      --tag-purple-text:#7C3AED;
+    }
+    [data-theme="dark"] {
+      --bg:           #1A1A18;
+      --bg-subtle:    #222220;
+      --bg-hover:     #2A2A28;
+      --surface:      #242422;
+      --text-1:       #F0EFE8;
+      --text-2:       #A8A59C;
+      --text-3:       #706D64;
+      --text-4:       #504D46;
+      --border:       rgba(255,255,255,0.08);
+      --border-soft:  rgba(255,255,255,0.05);
+      --btn-primary-bg:   #F0EFE8;
+      --btn-primary-text: #1A1A18;
+      --tag-amber-text: #FCD34D;
+      --tag-blue-text:  #93C5FD;
+      --tag-green-text: #4ADE80;
+      --tag-gray-text:  #D1D5DB;
+      --tag-purple-text:#C4B5FD;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                   "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      background: var(--bg); color: var(--text-1);
+      height: 100%; -webkit-font-smoothing: antialiased;
+      transition: background .3s, color .3s;
+    }
+
+    /* ─── 整体布局 ─── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ─── 左侧侧边栏 ─── */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--bg-subtle);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; z-index: 100;
+      transition: background .3s, border-color .3s;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 9px;
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none; color: var(--text-1);
+    }
+    .sidebar-logo-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--btn-primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .3s;
+    }
+    .sidebar-logo-mark svg { width: 15px; height: 15px; }
+    .sidebar-logo-text { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+    .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: var(--radius-sm);
+      color: var(--text-2); text-decoration: none;
+      font-size: 13px; transition: background .15s, color .15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-1); }
+    .nav-item.active { background: var(--bg-hover); color: var(--text-1); font-weight: 500; }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .sidebar-footer {
+      padding: 12px 8px; border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sidebar-footer-btn {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: var(--radius-sm);
+      color: var(--text-3); text-decoration: none;
+      font-size: 12px; background: none; border: none;
+      font-family: inherit; cursor: pointer; width: 100%; text-align: left;
+      transition: background .15s, color .15s;
+    }
+    .sidebar-footer-btn:hover { background: var(--bg-hover); color: var(--text-1); }
+    .sidebar-footer-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ─── 右侧主体 ─── */
+    .main-wrap { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ─── 顶部栏 ─── */
+    .topbar {
+      height: 52px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+      transition: background .3s, border-color .3s;
+    }
+    .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-1); display: flex; align-items: center; gap: 8px; }
+    .topbar-title svg { width: 16px; height: 16px; color: var(--text-3); }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      height: 30px; padding: 0 12px; background: transparent;
+      border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+      color: var(--text-2); font-size: 12px; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background .15s, color .15s;
+    }
+    .btn-ghost:hover { background: var(--bg-hover); color: var(--text-1); }
+    .btn-ghost svg { width: 13px; height: 13px; }
+
+    /* ─── 内容区 ─── */
+    .content { flex: 1; padding: 20px 24px 60px; background: var(--bg-subtle); }
+
+    /* ─── 筛选卡 ─── */
+    .filter-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px 18px;
+      margin-bottom: 14px;
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-label { font-size: 11px; color: var(--text-4); letter-spacing: 0.04em; text-transform: uppercase; }
+    .filter-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+    .chip {
+      height: 26px; padding: 0 11px;
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      font-size: 12px; color: var(--text-2); font-family: inherit;
+      cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+      display: inline-flex; align-items: center;
+    }
+    .chip:hover { background: var(--bg-hover); }
+    .chip.active { background: var(--btn-primary-bg); border-color: var(--btn-primary-bg); color: var(--btn-primary-text); }
+    .filter-select {
+      height: 30px; padding: 0 10px;
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px; color: var(--text-1); font-family: inherit;
+      cursor: pointer; outline: none; transition: border-color .15s;
+    }
+    .filter-select:focus { border-color: var(--text-3); }
+    .filter-date-row { display: flex; align-items: center; gap: 6px; }
+    .filter-date {
+      height: 30px; padding: 0 10px;
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px; color: var(--text-1); font-family: inherit;
+      outline: none; transition: border-color .15s;
+    }
+    .filter-date:focus { border-color: var(--text-3); }
+    .filter-date-sep { font-size: 12px; color: var(--text-4); }
+    .btn-filter {
+      height: 30px; padding: 0 14px;
+      background: var(--btn-primary-bg); border: none; border-radius: var(--radius-sm);
+      color: var(--btn-primary-text); font-size: 12px; font-weight: 500; font-family: inherit;
+      cursor: pointer; transition: opacity .15s, background .3s, color .3s;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-filter:hover { opacity: .88; }
+    .btn-filter svg { width: 12px; height: 12px; }
+
+    /* ─── 表格卡 ─── */
+    .table-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); overflow: hidden;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 10px 14px; font-size: 11px; font-weight: 500; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      background: var(--bg-subtle); border-bottom: 1px solid var(--border);
+      white-space: nowrap; text-align: left;
+    }
+    tbody td {
+      padding: 11px 14px; font-size: 13px; color: var(--text-1);
+      border-bottom: 1px solid var(--border); vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--bg-subtle); }
+    .order-id { font-family: "SF Mono","Fira Code",monospace; font-size: 12px; color: var(--text-3); }
+    .customer-name { font-weight: 500; }
+    .customer-sub { font-size: 12px; color: var(--text-4); margin-top: 1px; }
+    .amount { font-weight: 600; }
+    .product-tag {
+      display: inline-block; background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 7px; font-size: 11px; color: var(--text-2);
+      margin: 1px 2px;
+    }
+    .badge {
+      display: inline-flex; align-items: center;
+      height: 20px; padding: 0 8px; border-radius: var(--radius-full);
+      font-size: 11px; font-weight: 500; white-space: nowrap;
+    }
+    .badge-amber  { background: var(--tag-amber-bg);  color: var(--tag-amber-text); }
+    .badge-blue   { background: var(--tag-blue-bg);   color: var(--tag-blue-text); }
+    .badge-green  { background: var(--tag-green-bg);  color: var(--tag-green-text); }
+    .badge-gray   { background: var(--tag-gray-bg);   color: var(--tag-gray-text); }
+    .badge-purple { background: var(--tag-purple-bg); color: var(--tag-purple-text); }
+    .badge-dark   { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
+    .badge-orange { background: rgba(249,115,22,0.10); color: #C2410C; }
+    .badge-red    { background: rgba(239,68,68,0.10);  color: #DC2626; }
+
+    /* ─── 分页 ─── */
+    .pagination-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 18px; border-top: 1px solid var(--border);
+    }
+    .page-info { font-size: 12px; color: var(--text-4); }
+    .page-btns { display: flex; gap: 4px; }
+    .page-btn {
+      height: 26px; min-width: 26px; padding: 0 8px;
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 12px; color: var(--text-2);
+      font-family: inherit; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .page-btn:hover { background: var(--bg-hover); color: var(--text-1); }
+    .page-btn.active { background: var(--btn-primary-bg); border-color: var(--btn-primary-bg); color: var(--btn-primary-text); }
+    .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ─── 空态 ─── */
+    .state-cell { text-align: center; padding: 48px 20px; color: var(--text-4); font-size: 13px; }
+    .state-cell svg { width: 28px; height: 28px; margin: 0 auto 10px; display: block; }
+
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .main-wrap { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+
+// ==================== 统一认证工具函数 ====================
+function getAuthToken() {
+  return localStorage.getItem('agent_access_token') || localStorage.getItem('admin_access_token');
+}
+
+function handleUnauthorized() {
+  localStorage.removeItem('admin_access_token');
+  localStorage.removeItem('admin_refresh_token');
+  localStorage.removeItem('agent_access_token');
+  localStorage.removeItem('agent_refresh_token');
+  alert('登录已过期，请重新登录');
+  window.location.href = '/admin/login';
+}
+
+// Fetch 拦截器 - 自动添加认证 token 并处理 401
+(function() {
+  var origFetch = window.fetch;
+  window.fetch = function(input, init) {
+    init = init || {};
+    var url = typeof input === 'string' ? input : input && input.url;
+    // 为所有 /api/ 请求添加 token
+    if (typeof url === 'string' && url.indexOf('/api/') !== -1) {
+      var token = getAuthToken();
+      if (token) {
+        var headers = init.headers || {};
+        if (headers instanceof Headers) {
+          if (!headers.has('Authorization')) {
+            headers.set('Authorization', 'Bearer ' + token);
+          }
+        } else {
+          headers['Authorization'] = 'Bearer ' + token;
+          init.headers = headers;
+        }
+      }
+    }
+    return origFetch.call(this, input, init).then(function(res) {
+      // API 请求收到 401 自动跳转
+      if (res.status === 401) {
+        var url2 = typeof input === 'string' ? input : (input && input.url);
+        if (url2 && url2.indexOf('/api/') !== -1) {
+          handleUnauthorized();
+        }
+      }
+      if (res.status === 403) {
+        var url3 = typeof input === 'string' ? input : (input && input.url);
+        if (url3 && url3.indexOf('/api/') !== -1) {
+          alert('权限不足（需要管理员或坐席）。请使用坐席登录或管理员账号登录。');
+        }
+      }
+      return res;
+    }).catch(function(e) {
+      return Promise.reject(e);
+    });
+  };
+})();
+
+// 页面加载时检查登录
+(function(){
+  if (!getAuthToken()) {
+    window.location.href = '/admin/login';
+  }
+})();
+
+(function(){ var t=localStorage.getItem('theme'); if(t==='dark') document.documentElement.setAttribute('data-theme','dark'); })();</script>
+
+  <div class="layout">
+    <!-- 左侧侧边栏 -->
+    <aside class="sidebar">
+      <a href="/home" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none">
+            <path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/>
+          </svg>
+        </div>
+        <span class="sidebar-logo-text">客服管理</span>
+      </a>
+      <nav class="sidebar-nav">
+        <a href="/admin/dashboard-overview" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          数据看板
+        </a>
+        <a href="/admin/orders.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          全部订单
+        </a>
+        <a href="/admin/message-center" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          消息中心
+        </a>
+        <a href="/admin/evaluation.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          评价管理
+        </a>
+        <a href="/admin/pre-sale-notes.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          售前处理
+        </a>
+        <a href="/admin/after-sales.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          售后服务
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/home" class="sidebar-footer-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          返回主界面
+        </a>
+        <button class="sidebar-footer-btn" id="themeBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          深色模式
+        </button>
+      </div>
+    </aside>
+
+    <!-- 右侧主体 -->
+    <div class="main-wrap">
+      <!-- 顶部栏 -->
+      <div class="topbar">
+        <div class="topbar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          全部订单
+        </div>
+        <div class="topbar-right">
+          <a href="/home" class="btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            返回主界面
+          </a>
+        </div>
+      </div>
+
+      <!-- 内容区 -->
+      <div class="content">
+        <!-- 筛选卡 -->
+        <div class="filter-card">
+          <div class="filter-group">
+            <div class="filter-label">状态</div>
+            <div class="filter-chips" id="statusFilters">
+              <button class="chip active" data-status="全部">全部</button>
+              <button class="chip" data-status="待付款">待付款</button>
+              <button class="chip" data-status="待发货">待发货</button>
+              <button class="chip" data-status="已发货">已发货</button>
+              <button class="chip" data-status="已完成">已完成</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">站点</div>
+            <select class="filter-select" id="platformFilter">
+              <option value="全部">全部站点</option>
+              <option value="tiktok">TikTok</option>
+              <option value="lazada">Lazada</option>
+              <option value="shopee">Shopee</option>
+              <option value="1688">1688</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">日期范围</div>
+            <div class="filter-date-row">
+              <input type="date" class="filter-date" id="startDate">
+              <span class="filter-date-sep">—</span>
+              <input type="date" class="filter-date" id="endDate">
+            </div>
+          </div>
+          <div class="filter-group" style="justify-content:flex-end">
+            <div class="filter-label">&nbsp;</div>
+            <button class="btn-filter" onclick="loadOrders()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              筛选
+            </button>
+          </div>
+        </div>
+
+        <!-- 表格卡 -->
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>订单 ID</th>
+                  <th>客户</th>
+                  <th>联系方式</th>
+                  <th>商品</th>
+                  <th>金额</th>
+                  <th>状态</th>
+                  <th>站点</th>
+                  <th>下单时间</th>
+                </tr>
+              </thead>
+              <tbody id="orderTableBody">
+                <tr><td colspan="8" class="state-cell">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  加载中…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-row">
+            <span class="page-info" id="pageInfo">共 0 条记录</span>
+            <div class="page-btns" id="pagination"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 0;
+    const pageSize = 20;
+    let currentFilters = { status:'全部', platform:'全部', startDate:'', endDate:'' };
+    let hasInitialRenderedFromCache = false;
+
+    document.addEventListener('DOMContentLoaded', function(){
+      setupFilters();
+      restoreFromCacheOrLoad();
+    });
+
+    function setupFilters(){
+      document.querySelectorAll('#statusFilters .chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          document.querySelectorAll('#statusFilters .chip').forEach(function(b){ b.classList.remove('active'); });
+          this.classList.add('active');
+          currentFilters.status = this.dataset.status;
+        });
+      });
+      document.getElementById('platformFilter').addEventListener('change', function(){ currentFilters.platform = this.value; });
+      document.getElementById('startDate').addEventListener('change', function(){ currentFilters.startDate = this.value; });
+      document.getElementById('endDate').addEventListener('change', function(){ currentFilters.endDate = this.value; });
+    }
+
+    function applyFiltersToUI(filters){
+      if(!filters) return;
+      document.querySelectorAll('#statusFilters .chip').forEach(function(btn){
+        if(btn.dataset.status === filters.status){ btn.classList.add('active'); }
+        else { btn.classList.remove('active'); }
+      });
+      var platformSelect = document.getElementById('platformFilter');
+      if(platformSelect) platformSelect.value = filters.platform || '全部';
+      var sd = document.getElementById('startDate');
+      var ed = document.getElementById('endDate');
+      if(sd) sd.value = filters.startDate || '';
+      if(ed) ed.value = filters.endDate || '';
+    }
+
+    function restoreFromCacheOrLoad(){
+      var raw = null;
+      try {
+        raw = sessionStorage.getItem('admin_orders_cache');
+      } catch(e) {
+        raw = null;
+      }
+      if(raw){
+        try{
+          var cache = JSON.parse(raw);
+          if(cache && Array.isArray(cache.orders)){
+            currentPage = cache.currentPage || 0;
+            currentFilters = cache.filters || currentFilters;
+            applyFiltersToUI(currentFilters);
+            renderOrders(cache.orders);
+            renderPagination(cache.total || 0);
+            hasInitialRenderedFromCache = true;
+            return;
+          }
+        }catch(e){}
+      }
+      loadOrders();
+    }
+
+    async function loadOrders(){
+      const tbody = document.getElementById('orderTableBody');
+      tbody.innerHTML = '<tr><td colspan="8" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr>';
+      try {
+        const params = new URLSearchParams({
+          status: currentFilters.status,
+          platform: currentFilters.platform==='全部'?'':currentFilters.platform,
+          start_date: currentFilters.startDate,
+          end_date: currentFilters.endDate,
+          limit: pageSize,
+          offset: currentPage * pageSize
+        });
+        const res = await fetch('/api/admin/orders?' + params);
+        if (!res.ok) {
+          // 401 等错误会在 fetch interceptor 中处理
+          throw new Error('请求失败');
+        }
+        const data = await res.json();
+        if(data.success && data.orders !== undefined){
+          renderOrders(data.orders);
+          renderPagination(data.total);
+          try{
+            sessionStorage.setItem('admin_orders_cache', JSON.stringify({
+              orders: data.orders || [],
+              total: data.total || 0,
+              pageSize: pageSize,
+              currentPage: currentPage,
+              filters: currentFilters,
+              timestamp: Date.now()
+            }));
+          }catch(_e){}
+        } else if(data.success || data.ok) {
+          // 兼容旧的 ok 格式
+          const orders = data.orders || data.data || [];
+          const total = data.total || 0;
+          renderOrders(orders);
+          renderPagination(total);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>加载失败<br><span style="font-size:12px;color:var(--text-4);">' + (data.message || '请检查后端服务是否运行') + '</span></td></tr>';
+        }
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="8" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>网络错误或后端未运行<br><span style="font-size:12px;color:var(--text-4);">请确认后端服务已启动</span></td></tr>';
+      }
+    }
+
+    function renderOrders(orders){
+      const tbody = document.getElementById('orderTableBody');
+      if(!orders || orders.length === 0){
+        tbody.innerHTML = '<tr><td colspan="8" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>暂无订单数据</td></tr>';
+        return;
+      }
+      let html = '';
+      orders.forEach(function(o){
+        const products = (o.products||[]).map(function(p){ return '<span class="product-tag">' + (p.name||'商品') + '</span>'; }).join('') || '<span style="color:var(--text-4)">—</span>';
+        html += `<tr>
+          <td><span class="order-id">${o.id||'—'}</span></td>
+          <td><div class="customer-name">${o.customer_name||'—'}</div><div class="customer-sub">ID: ${o.customer_id||'—'}</div></td>
+          <td><div>${o.customer_phone||'—'}</div><div class="customer-sub">${o.customer_email||''}</div></td>
+          <td>${products}</td>
+          <td><span class="amount">¥${o.total||o.amount||0}</span></td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${platformBadge(o.platform)}</td>
+          <td style="color:var(--text-3);font-size:12px">${o.display_date||o.created_at||o.order_date||o.date||'—'}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function statusBadge(s){
+      const map = {'pending_payment':'badge-amber','待付款':'badge-amber','pending_shipment':'badge-blue','待发货':'badge-blue','shipped':'badge-purple','已发货':'badge-purple','completed':'badge-green','已完成':'badge-green'};
+      const label = {'pending_payment':'待付款','pending_shipment':'待发货','shipped':'已发货','completed':'已完成'};
+      return '<span class="badge ' + (map[s]||'badge-gray') + '">' + (label[s]||s||'未知') + '</span>';
+    }
+    function platformBadge(p){
+      if(!p) return '<span style="color:var(--text-4)">—</span>';
+      const map = {'tiktok':'badge-dark','lazada':'badge-blue','shopee':'badge-orange','1688':'badge-red'};
+      const label = {'tiktok':'TikTok','lazada':'Lazada','shopee':'Shopee','1688':'1688'};
+      const k = p.toLowerCase();
+      return '<span class="badge ' + (map[k]||'badge-gray') + '">' + (label[k]||p) + '</span>';
+    }
+
+    function renderPagination(total){
+      document.getElementById('pageInfo').textContent = '共 ' + total + ' 条记录';
+      const totalPages = Math.ceil(total / pageSize);
+      const pg = document.getElementById('pagination');
+      if(totalPages <= 1){ pg.innerHTML = ''; return; }
+      let html = '<button class="page-btn" ' + (currentPage===0?'disabled':'') + ' onclick="changePage(' + (currentPage-1) + ')">‹</button>';
+      for(let i=0; i<totalPages; i++){
+        if(i===0||i===totalPages-1||(i>=currentPage-2&&i<=currentPage+2)){
+          html += '<button class="page-btn ' + (i===currentPage?'active':'') + '" onclick="changePage(' + i + ')">' + (i+1) + '</button>';
+        } else if(i===currentPage-3||i===currentPage+3){
+          html += '<span class="page-btn" style="cursor:default">…</span>';
+        }
+      }
+      html += '<button class="page-btn" ' + (currentPage>=totalPages-1?'disabled':'') + ' onclick="changePage(' + (currentPage+1) + ')">›</button>';
+      pg.innerHTML = html;
+    }
+    function changePage(p){ currentPage = p; loadOrders(); window.scrollTo(0,0); }
+
+    (function(){
+      var btn = document.getElementById('themeBtn');
+      function apply(t){
+        if(t==='dark'){ document.documentElement.setAttribute('data-theme','dark'); btn.lastChild.textContent=' 浅色模式'; }
+        else { document.documentElement.removeAttribute('data-theme'); btn.lastChild.textContent=' 深色模式'; }
+      }
+      apply(localStorage.getItem('theme')||'light');
+      btn.addEventListener('click',function(){
+        var cur = document.documentElement.getAttribute('data-theme');
+        var next = cur==='dark'?'light':'dark';
+        apply(next); localStorage.setItem('theme',next);
+      });
+    })();
+  </script>
+</body>
+</html>

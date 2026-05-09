@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>店铺管理 · Ruitalk</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    /* 浅色：文字尽量接近黑色，白底上非常醒目 */
+    :root{--bg:#FFFFFF;--bg-subtle:#F9F9F8;--bg-hover:#F4F4F2;--surface:#FFFFFF;--text-1:#0c0c0b;--text-2:#1f1e1b;--text-3:#33322e;--text-4:#45433d;--border:#E5E7EB;--border-soft:rgba(0,0,0,0.06);--btn-primary-bg:#1A1A19;--btn-primary-text:#FFFFFF;--radius-sm:8px;--radius-md:12px;--radius-lg:22px;--radius-full:9999px;--shadow-sm:0 1px 3px rgba(0,0,0,0.06);--shadow-md:0 4px 16px rgba(0,0,0,0.07);}
+    /* 深色：文字尽量接近白色，深底上非常醒目 */
+    [data-theme="dark"]{--bg:#1A1A18;--bg-subtle:#222220;--bg-hover:#2A2A28;--surface:#242422;--text-1:#fafaf6;--text-2:#eae8e2;--text-3:#d8d6ce;--text-4:#c4c2b8;--border:rgba(255,255,255,0.08);--border-soft:rgba(255,255,255,0.05);--btn-primary-bg:#F0EFE8;--btn-primary-text:#1A1A18;}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;font-size:14px;font-weight:500;line-height:1.6;background:var(--bg);color:var(--text-1);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
+    /* nav */
+    .nav{position:sticky;top:0;z-index:200;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--bg);border-bottom:1px solid var(--border);}
+    .nav-left{display:flex;align-items:center;gap:8px;}
+    .nav-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--text-1);text-decoration:none;}
+    .nav-logo-mark{width:30px;height:30px;border-radius:9px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;}
+    .nav-logo-mark svg{width:17px;height:17px;}
+    .nav-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+    .nav-page-title{font-size:13px;font-weight:600;color:var(--text-2);}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .btn-ghost{height:32px;padding:0 14px;background:transparent;border:1px solid rgba(0,0,0,0.10);border-radius:var(--radius-sm);color:var(--text-1);font-size:13px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s;}
+    .btn-ghost:hover{background:var(--bg-hover);}
+    .btn-ghost svg{width:14px;height:14px;}
+    /* layout */
+    .layout{display:flex;min-height:calc(100vh - 52px);}
+    .sidebar{width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:16px 12px;background:var(--bg-subtle);}
+    .sidebar-title{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:0 8px;margin-bottom:8px;}
+    .sidebar-link{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--text-2);text-decoration:none;cursor:pointer;border:none;background:transparent;font-family:inherit;width:100%;transition:background .15s,color .15s;}
+    .sidebar-link:hover{background:var(--bg-hover);color:var(--text-1);}
+    .sidebar-link.active{background:var(--surface);color:var(--text-1);font-weight:500;box-shadow:var(--shadow-sm);}
+    .sidebar-link svg{width:14px;height:14px;flex-shrink:0;}
+    .main{flex:1;padding:24px;overflow-x:hidden;}
+    /* stat row */
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;}
+    .stat-num{font-size:22px;font-weight:700;color:var(--text-1);line-height:1.2;}
+    .stat-label{font-size:13px;font-weight:700;color:var(--text-1);margin-top:6px;letter-spacing:.02em;}
+    /* section */
+    .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+    .section-title{font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:.02em;}
+    /* filter */
+    .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;}
+    .filter-select{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;outline:none;cursor:pointer;}
+    .filter-input{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;outline:none;width:200px;}
+    .filter-input:focus,.filter-select:focus{border-color:var(--text-3);}
+    /* btn */
+    .btn-action{height:28px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s,color .15s;background:transparent;color:var(--text-1);}
+    .btn-action:hover{background:var(--bg-hover);color:var(--text-1);}
+    .btn-action svg{width:12px;height:12px;}
+    .btn-action svg{width:12px;height:12px;opacity:.9;}
+    .btn-action-primary{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .btn-action-primary:hover{opacity:.88;}
+    /* table */
+    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:16px;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;background:var(--bg-subtle);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+    tbody td{padding:11px 12px;font-size:13px;color:var(--text-1);border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:var(--bg-subtle);}
+    .mono{font-family:"SF Mono","Fira Code",monospace;font-size:12px;font-weight:500;color:var(--text-2);}
+    /* badge */
+    .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--radius-full);font-size:11px;font-weight:500;white-space:nowrap;}
+    .b-amber{background:rgba(245,158,11,.10);color:#B45309;}
+    .b-green{background:rgba(34,197,94,.10);color:#16A34A;}
+    .b-gray{background:rgba(107,114,128,.10);color:#374151;}
+    .b-red{background:rgba(239,68,68,.10);color:#DC2626;}
+    .b-blue{background:rgba(59,130,246,.10);color:#2563EB;}
+    .b-dark{background:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    [data-theme="dark"] .b-amber{color:#FCD34D;}[data-theme="dark"] .b-green{color:#4ADE80;}[data-theme="dark"] .b-red{color:#FCA5A5;}[data-theme="dark"] .b-blue{color:#93C5FD;}
+    /* platform badge */
+    .pb-amazon{background:#FF9900;color:#fff;}
+    .pb-shopee{background:#EE4D2D;color:#fff;}
+    .pb-tiktok{background:#000;color:#fff;}
+    .pb-aliexpress{background:#FF4747;color:#fff;}
+    .pb-temu{background:#FF6B6B;color:#fff;}
+    .pb-lazada{background:#0F1469;color:#fff;}
+    .pb-1688{background:#FF7300;color:#fff;}
+    .pb-ebay{background:#E53238;color:#fff;}
+    .pb-shopify{background:#96BF48;color:#fff;}
+    /* form */
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;margin-bottom:16px;}
+    .form-section-title{font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+    .form-section-title:first-child{margin-top:0;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+    .form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+    .form-group.full{grid-column:1/-1;}
+    .form-label-sm{font-size:12px;color:var(--text-2);font-weight:600;}
+    .form-input{height:32px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;}
+    .form-input:focus{border-color:var(--text-3);}
+    .form-select{height:32px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;cursor:pointer;}
+    .form-textarea{padding:8px 10px;min-height:70px;resize:vertical;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;width:100%;}
+    .form-textarea:focus{border-color:var(--text-3);}
+    .form-hint{font-size:12px;color:var(--text-3);font-weight:500;margin-top:2px;}
+    /* info box */
+    .info-box{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text-2);}
+    .info-box ul{margin-left:16px;}
+    .info-box li{margin-bottom:2px;}
+    /* modal */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);padding:24px;}
+    .modal-box-lg{max-width:720px;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .modal-title{font-size:15px;font-weight:600;color:var(--text-1);}
+    .modal-close{width:28px;height:28px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);}
+    .modal-close:hover{background:var(--bg-hover);}
+    .modal-close svg{width:14px;height:14px;}
+    .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+    .btn-modal-cancel{height:32px;padding:0 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-2);font-family:inherit;cursor:pointer;}
+    .btn-modal-cancel:hover{background:var(--bg-hover);}
+    .btn-modal-submit{height:32px;padding:0 14px;background:var(--btn-primary-bg);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--btn-primary-text);font-family:inherit;cursor:pointer;}
+    .btn-modal-submit:hover{opacity:.88;}
+    /* platform dist */
+    .platform-dist{display:flex;flex-wrap:wrap;gap:10px;}
+    .platform-dist-item{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 16px;text-align:center;min-width:80px;}
+    .platform-dist-num{font-size:18px;font-weight:700;color:var(--text-1);}
+    .platform-dist-label{font-size:13px;font-weight:700;color:var(--text-1);margin-top:6px;}
+    /* select multi */
+    .select-multi{height:140px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;padding:4px;}
+    .select-multi option{padding:4px 6px;border-radius:4px;}
+    /* state */
+    .state-cell{text-align:center;padding:40px 20px;color:var(--text-1);font-size:15px;font-weight:600;}
+    .state-cell svg{width:24px;height:24px;margin:0 auto 8px;display:block;opacity:.85;}
+    /* product img */
+    .product-img{width:48px;height:48px;border-radius:var(--radius-sm);object-fit:cover;background:var(--bg-subtle);}
+    /* low stock */
+    .low-stock{color:#DC2626;font-weight:600;}
+    @media(max-width:900px){.layout{flex-direction:column;}.sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;}.stat-row{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.nav{padding:0 16px;}.main{padding:16px;}.form-row,.form-row-3{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
+
+  <nav class="nav">
+    <div class="nav-left">
+      <a href="/home" class="nav-logo">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+        </div>
+        拓岳科技
+      </a>
+      <div class="nav-sep"></div>
+      <span class="nav-page-title">店铺管理</span>
+    </div>
+    <div class="nav-right">
+      <a href="/home" class="btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        主界面
+      </a>
+      <button class="btn-ghost" id="themeBtn">深色</button>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-title">功能模块</div>
+      <button class="sidebar-link active" onclick="showTab('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        仪表盘
+      </button>
+      <button class="sidebar-link" onclick="showTab('shops',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        店铺管理
+      </button>
+      <button class="sidebar-link" onclick="showTab('products',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        商品中心
+      </button>
+      <button class="sidebar-link" onclick="showTab('collect',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        商品采集
+      </button>
+      <button class="sidebar-link" onclick="showTab('publish',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        批量刊登
+      </button>
+      <button class="sidebar-link" onclick="showTab('inventory',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        库存管理
+      </button>
+      <button class="sidebar-link" onclick="showTab('pricing',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        定价规则
+      </button>
+    </aside>
+
+    <!-- 主内容 -->
+    <main class="main">
+
+      <!-- 仪表盘 -->
+      <div id="tab-dashboard">
+        <div class="section-header">
+          <span class="section-title">数据概览</span>
+          <button class="btn-action" onclick="loadDashboard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+            刷新
+          </button>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-num" id="totalShops">—</div><div class="stat-label">店铺总数</div></div>
+          <div class="stat-card"><div class="stat-num" id="totalProducts">—</div><div class="stat-label">商品总数</div></div>
+          <div class="stat-card"><div class="stat-num" id="totalPublished">—</div><div class="stat-label">已刊登商品</div></div>
+          <div class="stat-card"><div class="stat-num" id="lowStockCount" style="color:#B45309">—</div><div class="stat-label">库存预警</div></div>
+        </div>
+        <div class="table-card" style="padding:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">各平台店铺分布</div>
+          <div class="platform-dist" id="shopsByPlatform">
+            <span style="font-size:15px;font-weight:600;color:var(--text-1)">加载中…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 店铺管理 -->
+      <div id="tab-shops" style="display:none">
+        <div class="section-header">
+          <span class="section-title">店铺管理</span>
+          <button class="btn-action btn-action-primary" onclick="openShopModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            添加店铺
+          </button>
+        </div>
+        <div class="filter-row">
+          <select class="filter-select" id="shopPlatformFilter" onchange="loadShops()">
+            <option value="">全部平台</option>
+            <option value="aliexpress">速卖通</option><option value="amazon">亚马逊</option><option value="shopee">Shopee</option>
+            <option value="temu">Temu</option><option value="tiktok">TikTok Shop</option><option value="lazada">Lazada</option>
+            <option value="ebay">eBay</option><option value="shopify">Shopify</option><option value="1688">1688</option>
+          </select>
+          <select class="filter-select" id="shopStatusFilter" onchange="loadShops()">
+            <option value="">全部状态</option><option value="active">启用</option><option value="inactive">停用</option>
+          </select>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>店铺名称</th><th>平台</th><th>店铺ID</th><th>目标国家</th><th>货币</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="shopsTableBody"><tr><td colspan="7" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商品中心 -->
+      <div id="tab-products" style="display:none">
+        <div class="section-header">
+          <span class="section-title">商品中心</span>
+          <button class="btn-action btn-action-primary" onclick="openProductModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            添加商品
+          </button>
+        </div>
+        <div class="filter-row">
+          <select class="filter-select" id="productStatusFilter" onchange="loadProducts()">
+            <option value="">全部状态</option><option value="draft">草稿</option><option value="pending">待审核</option>
+            <option value="published">已发布</option><option value="offline">已下架</option>
+          </select>
+          <select class="filter-select" id="productSourceFilter" onchange="loadProducts()">
+            <option value="">全部货源</option><option value="1688">1688</option><option value="amazon">亚马逊</option><option value="aliexpress">速卖通</option>
+          </select>
+          <input type="text" class="filter-input" id="productKeyword" placeholder="搜索商品标题/编码…">
+          <button class="btn-action btn-action-primary" onclick="loadProducts()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            搜索
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>图片</th><th>商品标题</th><th>商品编码</th><th>货源平台</th><th>SKU数</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="productsTableBody"><tr><td colspan="7" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:center;gap:4px" id="productsPagination"></div>
+        </div>
+      </div>
+
+      <!-- 商品采集 -->
+      <div id="tab-collect" style="display:none">
+        <div class="section-header">
+          <span class="section-title">商品采集</span>
+          <button class="btn-action" style="color:#DC2626;border-color:rgba(239,68,68,.3)" onclick="initDatabase()">初始化数据库</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-card">
+            <div class="form-section-title">采集设置</div>
+            <div class="form-group">
+              <label class="form-label-sm">货源平台</label>
+              <select class="form-select" id="collectPlatform">
+                <option value="1688">1688</option><option value="amazon">Amazon</option>
+                <option value="aliexpress">AliExpress</option><option value="shopee">Shopee</option><option value="temu">Temu</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">商品链接 / ASIN / ID</label>
+              <input type="text" class="form-input" id="collectUrl" placeholder="请输入商品链接或平台商品ID">
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="autoCreateSku" checked> 自动创建 SKU
+              </label>
+            </div>
+            <button class="btn-action btn-action-primary" id="collectBtn" onclick="collectProduct()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+              开始采集
+            </button>
+          </div>
+          <div class="info-box" style="align-self:start">
+            <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">采集说明</div>
+            <ul style="font-size:13px;font-weight:500;color:var(--text-2);line-height:1.8">
+              <li>1688：请输入商品链接，如 https://detail.1688.com/…</li>
+              <li>Amazon：请输入 ASIN，如 B09V3KXJPB</li>
+              <li>AliExpress：请输入商品 ID</li>
+            </ul>
+          </div>
+        </div>
+        <div class="table-card" style="margin-top:16px">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em">采集历史</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>平台</th><th>商品标题</th><th>状态</th></tr></thead>
+              <tbody id="collectHistoryBody"><tr><td colspan="4" class="state-cell">暂无采集记录</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 批量刊登 -->
+      <div id="tab-publish" style="display:none">
+        <div class="section-header"><span class="section-title">批量刊登</span></div>
+        <div class="form-card">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <div class="form-label-sm" style="margin-bottom:6px">选择商品（可多选）</div>
+              <select class="select-multi" id="publishProductSelect" multiple></select>
+            </div>
+            <div>
+              <div class="form-label-sm" style="margin-bottom:6px">选择店铺（可多选）</div>
+              <select class="select-multi" id="publishShopSelect" multiple></select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:flex-end">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label-sm">价格类型</label>
+              <select class="form-select" id="priceType">
+                <option value="cost_plus">成本加价</option><option value="fixed">固定价格</option><option value="rule">按规则</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label-sm">价格调整 (%)</label>
+              <input type="number" class="form-input" id="priceAdjustment" value="0">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label-sm">库存同步</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;height:32px">
+                <input type="checkbox" id="stockSync" checked> 同步库存
+              </label>
+            </div>
+            <button class="btn-action btn-action-primary" onclick="publishProducts()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              立即刊登
+            </button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em">已刊登商品</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>商品</th><th>店铺</th><th>平台</th><th>售价</th><th>库存</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="publishedTableBody"><tr><td colspan="7" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 库存管理 -->
+      <div id="tab-inventory" style="display:none">
+        <div class="section-header">
+          <span class="section-title">库存管理</span>
+          <button class="btn-action" onclick="syncAllInventory()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+            同步全店库存
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>SKU编码</th><th>SKU名称</th><th>店铺</th><th>平台</th><th>可用库存</th><th>预留库存</th><th>总库存</th><th>操作</th></tr></thead>
+              <tbody id="inventoryTableBody"><tr><td colspan="8" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 定价规则 -->
+      <div id="tab-pricing" style="display:none">
+        <div class="section-header">
+          <span class="section-title">定价规则</span>
+          <button class="btn-action btn-action-primary" onclick="openPricingRuleModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            添加规则
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>规则名称</th><th>规则类型</th><th>适用平台</th><th>利润率(%)</th><th>佣金(%)</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="pricingRulesBody"><tr><td colspan="7" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- 店铺弹窗 -->
+  <div class="modal-overlay" id="shopModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">店铺配置</span>
+        <button class="modal-close" onclick="closeModal('shopModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <form id="shopForm">
+        <input type="hidden" id="shopId">
+        <div class="form-group"><label class="form-label-sm">店铺名称 *</label><input type="text" class="form-input" id="shopName" required></div>
+        <div class="form-group"><label class="form-label-sm">平台 *</label>
+          <select class="form-select" id="shopPlatform" required>
+            <option value="">选择平台</option><option value="aliexpress">速卖通</option><option value="amazon">亚马逊</option>
+            <option value="shopee">Shopee</option><option value="temu">Temu</option><option value="tiktok">TikTok Shop</option>
+            <option value="lazada">Lazada</option><option value="ebay">eBay</option><option value="shopify">Shopify</option><option value="1688">1688</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label-sm">平台店铺ID</label><input type="text" class="form-input" id="shopPlatformId"></div>
+        <div class="form-group"><label class="form-label-sm">App Key</label><input type="text" class="form-input" id="shopAppKey"></div>
+        <div class="form-group"><label class="form-label-sm">App Secret</label><input type="password" class="form-input" id="shopAppSecret"></div>
+        <div class="form-group"><label class="form-label-sm">Access Token</label><input type="password" class="form-input" id="shopAccessToken"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label-sm">目标国家</label><input type="text" class="form-input" id="shopCountry"></div>
+          <div class="form-group"><label class="form-label-sm">货币</label>
+            <select class="form-select" id="shopCurrency">
+              <option value="USD">USD</option><option value="CNY">CNY</option><option value="EUR">EUR</option>
+              <option value="GBP">GBP</option><option value="THB">THB</option><option value="MYR">MYR</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="shopIsDefault"> 设为默认店铺</label></div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('shopModal')">取消</button>
+        <button class="btn-modal-submit" onclick="saveShop()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 商品弹窗 -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <span class="modal-title">商品信息</span>
+        <button class="modal-close" onclick="closeModal('productModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <form id="productForm">
+        <input type="hidden" id="productId">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label-sm">商品标题 *</label><input type="text" class="form-input" id="productTitle" required></div>
+          <div class="form-group"><label class="form-label-sm">英文标题</label><input type="text" class="form-input" id="productTitleEn"></div>
+        </div>
+        <div class="form-group"><label class="form-label-sm">商品描述</label><textarea class="form-textarea" id="productDescription"></textarea></div>
+        <div class="form-row-3">
+          <div class="form-group"><label class="form-label-sm">货源平台</label>
+            <select class="form-select" id="productSourcePlatform">
+              <option value="">选择平台</option><option value="1688">1688</option><option value="amazon">亚马逊</option><option value="aliexpress">速卖通</option><option value="shopee">Shopee</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label-sm">品牌</label><input type="text" class="form-input" id="productBrand"></div>
+          <div class="form-group"><label class="form-label-sm">材质</label><input type="text" class="form-input" id="productMaterial"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label-sm">重量 (kg)</label><input type="number" step="0.001" class="form-input" id="productWeight"></div>
+          <div class="form-group"><label class="form-label-sm">商品状态</label>
+            <select class="form-select" id="productStatus">
+              <option value="draft">草稿</option><option value="pending">待审核</option><option value="published">已发布</option><option value="offline">已下架</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label-sm">图片链接（每行一个）</label><textarea class="form-textarea" id="productImages" placeholder="https://…"></textarea></div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('productModal')">取消</button>
+        <button class="btn-modal-submit" onclick="saveProduct()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 定价规则弹窗 -->
+  <div class="modal-overlay" id="pricingRuleModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">定价规则</span>
+        <button class="modal-close" onclick="closeModal('pricingRuleModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <form id="pricingRuleForm">
+        <div class="form-group"><label class="form-label-sm">规则名称 *</label><input type="text" class="form-input" id="ruleName" required></div>
+        <div class="form-group"><label class="form-label-sm">规则类型 *</label>
+          <select class="form-select" id="ruleType" required onchange="toggleRuleFields()">
+            <option value="margin">利润率定价</option><option value="fixed">固定加价</option><option value="target">目标价格</option><option value="competition">竞品定价</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label-sm">适用平台</label>
+          <select class="form-select" id="rulePlatform">
+            <option value="">全部平台</option><option value="aliexpress">速卖通</option><option value="amazon">亚马逊</option>
+            <option value="shopee">Shopee</option><option value="temu">Temu</option><option value="tiktok">TikTok Shop</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label-sm">利润率 (%)</label><input type="number" step="0.1" class="form-input" id="ruleMargin" value="30"></div>
+          <div class="form-group"><label class="form-label-sm">平台佣金 (%)</label><input type="number" step="0.1" class="form-input" id="rulePlatformFee" value="10"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label-sm">运费</label><input type="number" step="0.01" class="form-input" id="ruleShipping" value="0"></div>
+          <div class="form-group"><label class="form-label-sm">支付费率 (%)</label><input type="number" step="0.1" class="form-input" id="rulePaymentFee" value="2"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label-sm">取整模式</label>
+            <select class="form-select" id="ruleRoundMode">
+              <option value="ceil">向上取整</option><option value="floor">向下取整</option><option value="round">四舍五入</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label-sm">优先级</label><input type="number" class="form-input" id="rulePriority" value="0"></div>
+        </div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="ruleIsActive" checked> 启用规则</label></div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('pricingRuleModal')">取消</button>
+        <button class="btn-modal-submit" onclick="savePricingRule()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTab='dashboard';
+
+    function showTab(tab,btn){
+      currentTab=tab;
+      document.querySelectorAll('.sidebar-link').forEach(function(l){l.classList.remove('active');});
+      if(btn)btn.classList.add('active');
+      document.querySelectorAll('[id^="tab-"]').forEach(function(d){d.style.display='none';});
+      document.getElementById('tab-'+tab).style.display='block';
+      switch(tab){case 'dashboard':loadDashboard();break;case 'shops':loadShops();break;case 'products':loadProducts();break;case 'publish':loadPublishData();break;case 'inventory':loadInventory();break;case 'pricing':loadPricingRules();break;}
+    }
+
+    function openModal(id){document.getElementById(id).classList.add('open');}
+    function closeModal(id){document.getElementById(id).classList.remove('open');}
+    document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});});
+
+    async function apiCall(url,options){
+      options=options||{};
+      try{var res=await fetch(url,Object.assign({},options,{headers:Object.assign({'Content-Type':'application/json'},options.headers||{})}));return await res.json();}
+      catch(e){console.error('API Error:',e);alert('请求失败: '+e.message);return{success:false,message:e.message};}
+    }
+
+    function getPlatformName(code){var names={'aliexpress':'速卖通','amazon':'亚马逊','shopee':'Shopee','temu':'Temu','tiktok':'TikTok','lazada':'Lazada','ebay':'eBay','shopify':'Shopify','1688':'1688'};return names[code]||code;}
+    function getStatusName(s){var n={'draft':'草稿','pending':'待审核','published':'已发布','offline':'已下架','archived':'已归档'};return n[s]||s;}
+    function getRuleTypeName(t){var n={'margin':'利润率定价','fixed':'固定加价','target':'目标价格','competition':'竞品定价'};return n[t]||t;}
+
+    function platformBadge(p){var cls='badge pb-'+p;return '<span class="'+cls+'">'+getPlatformName(p)+'</span>';}
+    function statusBadge(s){var m={'active':'b-green','inactive':'b-red','draft':'b-gray','published':'b-blue','pending':'b-amber','offline':'b-gray'};return '<span class="badge '+(m[s]||'b-gray')+'">'+getStatusName(s)+'</span>';}
+
+    async function loadDashboard(){
+      var res=await apiCall('/api/v1/shop/stats');
+      if(res.success){
+        document.getElementById('totalShops').textContent=res.data.total_shops||0;
+        document.getElementById('totalProducts').textContent=res.data.total_products||0;
+        document.getElementById('totalPublished').textContent=res.data.total_published||0;
+        document.getElementById('lowStockCount').textContent=res.data.low_stock_count||0;
+        var ph=document.getElementById('shopsByPlatform');
+        var dist=res.data.shops_by_platform||[];
+        if(dist.length){ph.innerHTML=dist.map(function(p){return '<div class="platform-dist-item"><div class="platform-dist-num">'+p.count+'</div><div class="platform-dist-label">'+getPlatformName(p.platform)+'</div></div>';}).join('');}
+        else{ph.innerHTML='<span style="font-size:15px;font-weight:600;color:var(--text-1)">暂无店铺</span>';}
+      }
+    }
+
+    async function loadShops(){
+      var platform=document.getElementById('shopPlatformFilter').value;
+      var status=document.getElementById('shopStatusFilter').value;
+      var url='/api/v1/shop/shops?';
+      if(platform)url+='platform='+platform+'&';if(status)url+='status='+status+'&';
+      var res=await apiCall(url);
+      if(res.success){
+        var html=res.data.length?res.data.map(function(s){return '<tr><td><strong>'+s.shop_name+'</strong>'+(s.is_default?'<span class="badge b-blue" style="margin-left:6px">默认</span>':'')+'</td><td>'+platformBadge(s.platform)+'</td><td class="mono">'+(s.shop_id||'—')+'</td><td style="color:var(--text-3)">'+(s.country||'—')+'</td><td style="color:var(--text-3)">'+(s.currency||'—')+'</td><td>'+statusBadge(s.status)+'</td><td style="white-space:nowrap"><button class="btn-action" onclick="editShop('+s.id+')" title="编辑"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button> <button class="btn-action" onclick="testConnection('+s.id+')" title="测试"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></button> <button class="btn-action" onclick="deleteShop('+s.id+')" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td></tr>';}).join(''):'<tr><td colspan="7" class="state-cell">暂无店铺，请添加</td></tr>';
+        document.getElementById('shopsTableBody').innerHTML=html;
+      }
+    }
+
+    function openShopModal(){document.getElementById('shopForm').reset();document.getElementById('shopId').value='';openModal('shopModal');}
+
+    async function saveShop(){
+      var id=document.getElementById('shopId').value;
+      var data={shop_name:document.getElementById('shopName').value,platform:document.getElementById('shopPlatform').value,shop_id:document.getElementById('shopPlatformId').value||null,app_key:document.getElementById('shopAppKey').value||null,app_secret:document.getElementById('shopAppSecret').value||null,access_token:document.getElementById('shopAccessToken').value||null,country:document.getElementById('shopCountry').value||null,currency:document.getElementById('shopCurrency').value,is_default:document.getElementById('shopIsDefault').checked};
+      if(!data.shop_name||!data.platform){alert('请填写必填项');return;}
+      var url='/api/v1/shop/shops',method='POST';
+      if(id){url+='/'+id;method='PUT';}
+      var res=await apiCall(url,{method:method,body:JSON.stringify(data)});
+      if(res.success){closeModal('shopModal');loadShops();alert('保存成功');}else{alert('保存失败: '+res.message);}
+    }
+
+    async function editShop(id){
+      var res=await apiCall('/api/v1/shop/shops/'+id);
+      if(res.success){var s=res.data;document.getElementById('shopId').value=s.id;document.getElementById('shopName').value=s.shop_name;document.getElementById('shopPlatform').value=s.platform;document.getElementById('shopPlatformId').value=s.shop_id||'';document.getElementById('shopCountry').value=s.country||'';document.getElementById('shopCurrency').value=s.currency||'USD';document.getElementById('shopIsDefault').checked=s.is_default;openModal('shopModal');}
+    }
+
+    async function testConnection(id){var res=await apiCall('/api/v1/shop/shops/'+id+'/test',{method:'POST'});alert(res.message);}
+
+    async function deleteShop(id){
+      if(!confirm('确定要删除该店铺吗？'))return;
+      var res=await apiCall('/api/v1/shop/shops/'+id,{method:'DELETE'});
+      if(res.success){loadShops();alert('删除成功');}else{alert('删除失败: '+res.message);}
+    }
+
+    async function loadProducts(page){
+      page=page||1;
+      var status=document.getElementById('productStatusFilter').value;
+      var source=document.getElementById('productSourceFilter').value;
+      var url='/api/v1/shop/products?page='+page+'&page_size=20';
+      if(status)url+='&status='+status;if(source)url+='&source_platform='+source;
+      var res=await apiCall(url);
+      if(res.success){
+        var html=res.data.items.length?res.data.items.map(function(p){var images=p.images?JSON.parse(p.images):[];var img=images[0]||'';return '<tr><td>'+(img?'<img src="'+img+'" class="product-img" onerror="this.style.display=\'none\'">':'<div class="product-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-4)">—</div>')+'</td><td><strong>'+p.title+'</strong></td><td class="mono">'+p.product_code+'</td><td>'+(p.source_platform?platformBadge(p.source_platform):'—')+'</td><td style="color:var(--text-3)">'+(p.sku_count||0)+'</td><td>'+statusBadge(p.status)+'</td><td style="white-space:nowrap"><button class="btn-action" onclick="editProduct('+p.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button> <button class="btn-action" onclick="deleteProduct('+p.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td></tr>';}).join(''):'<tr><td colspan="7" class="state-cell">暂无商品，请采集或添加</td></tr>';
+        document.getElementById('productsTableBody').innerHTML=html;
+        renderPagination('productsPagination',res.data.page,res.data.total_pages);
+      }
+    }
+
+    function renderPagination(id,page,total){
+      var pg=document.getElementById(id);if(!pg)return;
+      var html='';
+      if(page>1)html+='<button class="btn-action" onclick="loadProducts('+(page-1)+')">上一页</button>';
+      html+='<span style="font-size:12px;font-weight:500;color:var(--text-2);padding:0 8px">'+page+' / '+total+'</span>';
+      if(page<total)html+='<button class="btn-action" onclick="loadProducts('+(page+1)+')">下一页</button>';
+      pg.innerHTML=html;
+    }
+
+    function openProductModal(){document.getElementById('productForm').reset();document.getElementById('productId').value='';openModal('productModal');}
+
+    async function saveProduct(){
+      var data={title:document.getElementById('productTitle').value,title_en:document.getElementById('productTitleEn').value||null,description:document.getElementById('productDescription').value||null,source_platform:document.getElementById('productSourcePlatform').value||null,brand:document.getElementById('productBrand').value||null,material:document.getElementById('productMaterial').value||null,weight:parseFloat(document.getElementById('productWeight').value)||null,status:document.getElementById('productStatus').value,images:document.getElementById('productImages').value.split('\n').filter(function(i){return i.trim();})};
+      if(!data.title){alert('请填写商品标题');return;}
+      var url='/api/v1/shop/products',method='POST';
+      var id=document.getElementById('productId').value;
+      if(id){url+='/'+id;method='PUT';}
+      var res=await apiCall(url,{method:method,body:JSON.stringify(data)});
+      if(res.success){closeModal('productModal');loadProducts();alert('保存成功');}else{alert('保存失败: '+res.message);}
+    }
+
+    async function editProduct(id){
+      var res=await apiCall('/api/v1/shop/products/'+id);
+      if(res.success){var p=res.data;document.getElementById('productId').value=p.id;document.getElementById('productTitle').value=p.title;document.getElementById('productTitleEn').value=p.title_en||'';document.getElementById('productDescription').value=p.description||'';document.getElementById('productSourcePlatform').value=p.source_platform||'';document.getElementById('productBrand').value=p.brand||'';document.getElementById('productMaterial').value=p.material||'';document.getElementById('productWeight').value=p.weight||'';document.getElementById('productStatus').value=p.status;var images=p.images?JSON.parse(p.images):[];document.getElementById('productImages').value=images.join('\n');openModal('productModal');}
+    }
+
+    async function deleteProduct(id){
+      if(!confirm('确定要删除该商品吗？'))return;
+      var res=await apiCall('/api/v1/shop/products/'+id,{method:'DELETE'});
+      if(res.success){loadProducts();alert('删除成功');}else{alert('删除失败: '+res.message);}
+    }
+
+    async function collectProduct(){
+      var platform=document.getElementById('collectPlatform').value;
+      var url=document.getElementById('collectUrl').value;
+      var autoCreateSku=document.getElementById('autoCreateSku').checked;
+      if(!url){alert('请输入商品链接');return;}
+      var btn=document.getElementById('collectBtn');btn.disabled=true;btn.textContent='采集中…';
+      var res=await apiCall('/api/v1/shop/collect',{method:'POST',body:JSON.stringify({platform:platform,url:url,auto_create_sku:autoCreateSku})});
+      btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg> 开始采集';
+      if(res.success){alert('采集成功，商品ID: '+res.product_id);document.getElementById('collectUrl').value='';}else{alert('采集失败: '+res.message);}
+    }
+
+    async function loadPublishData(){
+      var pr=await apiCall('/api/v1/shop/products?status=draft&page_size=100');
+      if(pr.success)document.getElementById('publishProductSelect').innerHTML=pr.data.items.map(function(p){return '<option value="'+p.id+'">'+p.title+' ('+p.product_code+')</option>';}).join('');
+      var sr=await apiCall('/api/v1/shop/shops?status=active');
+      if(sr.success)document.getElementById('publishShopSelect').innerHTML=sr.data.map(function(s){return '<option value="'+s.id+'">'+s.shop_name+' ('+getPlatformName(s.platform)+')</option>';}).join('');
+      loadPublishedProducts();
+    }
+
+    async function loadPublishedProducts(){
+      var res=await apiCall('/api/v1/shop/shop-products?page_size=50');
+      if(res.success){
+        var html=res.data.items.length?res.data.items.map(function(item){return '<tr><td>'+(item.product_title||'—')+'</td><td>'+(item.shop_name||'—')+'</td><td>'+platformBadge(item.platform)+'</td><td style="font-weight:600">$'+(item.price||'0.00')+'</td><td>'+(item.stock||0)+'</td><td>'+statusBadge(item.publish_status)+'</td><td><button class="btn-action" onclick="offlineProduct('+item.id+')">下架</button></td></tr>';}).join(''):'<tr><td colspan="7" class="state-cell">暂无已刊登商品</td></tr>';
+        document.getElementById('publishedTableBody').innerHTML=html;
+      }
+    }
+
+    async function publishProducts(){
+      var productIds=Array.from(document.getElementById('publishProductSelect').selectedOptions).map(function(o){return parseInt(o.value);});
+      var shopIds=Array.from(document.getElementById('publishShopSelect').selectedOptions).map(function(o){return parseInt(o.value);});
+      if(!productIds.length){alert('请选择商品');return;}if(!shopIds.length){alert('请选择店铺');return;}
+      var data={product_ids:productIds,shop_ids:shopIds,price_type:document.getElementById('priceType').value,price_adjustment:parseFloat(document.getElementById('priceAdjustment').value)||0,stock_sync:document.getElementById('stockSync').checked};
+      var res=await apiCall('/api/v1/shop/publish',{method:'POST',body:JSON.stringify(data)});
+      if(res.success){alert('刊登成功');loadPublishedProducts();loadProducts();}else{alert('刊登失败: '+res.message);}
+    }
+
+    async function loadInventory(){
+      var res=await apiCall('/api/v1/shop/inventory');
+      if(res.success){
+        var html=res.data.length?res.data.map(function(inv){return '<tr><td class="mono">'+(inv.sku_code||'—')+'</td><td>'+(inv.sku_name||'—')+'</td><td style="color:var(--text-3)">'+(inv.shop_name||'主库存')+'</td><td>'+(inv.platform?getPlatformName(inv.platform):'—')+'</td><td class="'+(inv.available_stock<=10?'low-stock':'')+'">'+(inv.available_stock||0)+'</td><td>'+(inv.reserved_stock||0)+'</td><td style="font-weight:600">'+(inv.total_stock||0)+'</td><td><button class="btn-action" onclick="editInventory('+inv.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td></tr>';}).join(''):'<tr><td colspan="8" class="state-cell">暂无库存数据</td></tr>';
+        document.getElementById('inventoryTableBody').innerHTML=html;
+      }
+    }
+
+    async function syncAllInventory(){if(confirm('确定要同步所有店铺库存吗？'))alert('库存同步功能开发中');}
+
+    async function loadPricingRules(){
+      var res=await apiCall('/api/v1/shop/pricing-rules');
+      if(res.success){
+        var html=res.data.length?res.data.map(function(rule){return '<tr><td><strong>'+rule.rule_name+'</strong></td><td style="color:var(--text-3)">'+getRuleTypeName(rule.rule_type)+'</td><td>'+(rule.platform?platformBadge(rule.platform):'<span style="color:var(--text-4)">全部</span>')+'</td><td>'+(rule.margin_percent||0)+'%</td><td>'+(rule.platform_fee_percent||0)+'%</td><td><span class="badge '+(rule.is_active?'b-green':'b-gray')+'">'+(rule.is_active?'启用':'停用')+'</span></td><td><button class="btn-action" onclick="deletePricingRule('+rule.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td></tr>';}).join(''):'<tr><td colspan="7" class="state-cell">暂无定价规则</td></tr>';
+        document.getElementById('pricingRulesBody').innerHTML=html;
+      }
+    }
+
+    function openPricingRuleModal(){document.getElementById('pricingRuleForm').reset();openModal('pricingRuleModal');}
+
+    async function savePricingRule(){
+      var data={rule_name:document.getElementById('ruleName').value,rule_type:document.getElementById('ruleType').value,platform:document.getElementById('rulePlatform').value||null,margin_percent:parseFloat(document.getElementById('ruleMargin').value)||30,platform_fee_percent:parseFloat(document.getElementById('rulePlatformFee').value)||10,shipping_cost:parseFloat(document.getElementById('ruleShipping').value)||0,payment_fee_percent:parseFloat(document.getElementById('rulePaymentFee').value)||2,round_mode:document.getElementById('ruleRoundMode').value,priority:parseInt(document.getElementById('rulePriority').value)||0,is_active:document.getElementById('ruleIsActive').checked};
+      if(!data.rule_name||!data.rule_type){alert('请填写必填项');return;}
+      var res=await apiCall('/api/v1/shop/pricing-rules',{method:'POST',body:JSON.stringify(data)});
+      if(res.success){closeModal('pricingRuleModal');loadPricingRules();alert('保存成功');}else{alert('保存失败: '+res.message);}
+    }
+
+    async function deletePricingRule(id){
+      if(!confirm('确定要删除该规则吗？'))return;
+      var res=await apiCall('/api/v1/shop/pricing-rules/'+id,{method:'DELETE'});
+      if(res.success){loadPricingRules();alert('删除成功');}else{alert('删除失败: '+res.message);}
+    }
+
+    function toggleRuleFields(){}
+
+    async function initDatabase(){
+      if(!confirm('确定要初始化数据库吗？这将创建所有必要的表结构。'))return;
+      var btn=event.target;btn.disabled=true;btn.textContent='初始化中…';
+      var res=await apiCall('/api/v1/shop/init-database',{method:'POST'});
+      btn.disabled=false;btn.textContent='初始化数据库';
+      if(res.success){alert('数据库初始化成功！');}else{alert('初始化失败: '+res.message);}
+    }
+
+    // 主题切换
+    (function(){
+      var btn=document.getElementById('themeBtn');
+      function apply(t){if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');btn.textContent='浅色';}else{document.documentElement.removeAttribute('data-theme');btn.textContent='深色';}}
+      apply(localStorage.getItem('theme')||'light');
+      btn.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var next=cur==='dark'?'light':'dark';apply(next);localStorage.setItem('theme',next);});
+    })();
+
+    document.addEventListener('DOMContentLoaded',function(){loadDashboard();});
+  </script>
+</body>
+</html>

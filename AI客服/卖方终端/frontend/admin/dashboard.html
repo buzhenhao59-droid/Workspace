@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>客户档案检索 · 管理后台</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    /* ─────────────────────────────────────────────────
+       Manus 风格设计令牌
+    ───────────────────────────────────────────────── */
+    :root {
+      --bg:           #FFFFFF;
+      --bg-subtle:    #F9F9F8;
+      --bg-hover:     #F4F4F2;
+      --surface:      #FFFFFF;
+
+      --text-1:       #34322D;
+      --text-2:       #6B6860;
+      --text-3:       #9B9890;
+      --text-4:       #C4C1B8;
+
+      --border:       #E5E7EB;
+      --border-soft:  rgba(0,0,0,0.06);
+
+      --btn-primary-bg:   #1A1A19;
+      --btn-primary-text: #FFFFFF;
+
+      /* 语义标签 */
+      --tag-green-bg:   rgba(34,197,94,0.10);
+      --tag-green-text: #16A34A;
+      --tag-amber-bg:   rgba(245,158,11,0.10);
+      --tag-amber-text: #B45309;
+      --tag-red-bg:     rgba(239,68,68,0.10);
+      --tag-red-text:   #DC2626;
+      --tag-blue-bg:    rgba(59,130,246,0.10);
+      --tag-blue-text:  #2563EB;
+
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-lg:    22px;
+      --radius-full:  9999px;
+    }
+    [data-theme="dark"] {
+      --bg:           #1A1A18;
+      --bg-subtle:    #222220;
+      --bg-hover:     #2A2A28;
+      --surface:      #242422;
+
+      --text-1:       #F0EFE8;
+      --text-2:       #A8A59C;
+      --text-3:       #706D64;
+      --text-4:       #504D46;
+
+      --border:       rgba(255,255,255,0.08);
+      --border-soft:  rgba(255,255,255,0.05);
+
+      --btn-primary-bg:   #F0EFE8;
+      --btn-primary-text: #1A1A18;
+
+      --tag-green-text: #4ADE80;
+      --tag-amber-text: #FCD34D;
+      --tag-red-text:   #FCA5A5;
+      --tag-blue-text:  #93C5FD;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI",
+                   Helvetica, "PingFang SC", Arial, sans-serif;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background .2s, color .2s;
+    }
+
+    /* ── 顶部导航 ── */
+    .nav {
+      position: sticky; top: 0; z-index: 200;
+      height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left { display: flex; align-items: center; gap: 8px; }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 500; color: var(--text-1);
+      text-decoration: none;
+    }
+    .nav-logo-mark {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: var(--btn-primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--btn-primary-text);
+    }
+    .nav-badge {
+      height: 20px; padding: 0 8px;
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      font-size: 11px; color: var(--text-3);
+      display: inline-flex; align-items: center;
+    }
+    .nav-right { display: flex; gap: 6px; align-items: center; position: relative; z-index: 201; }
+    .btn-ghost-sm {
+      height: 30px; padding: 0 12px;
+      background: transparent;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      color: var(--text-3); font-size: 12px; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center;
+      transition: background .15s, color .15s;
+    }
+    .btn-ghost-sm:hover { background: var(--bg-hover); color: var(--text-1); }
+    .btn-ghost-danger:hover { color: #EF4444 !important; }
+
+    /* ── 主体 ── */
+    .page { max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* ── 搜索卡片（Manus 大圆角）── */
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .search-card-inner { padding: 20px 20px 14px; }
+    .search-label { font-size: 12px; color: var(--text-3); margin-bottom: 10px; }
+    .search-row { display: flex; gap: 8px; }
+    .search-input-wrap {
+      flex: 1;
+      display: flex; align-items: center;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 0 14px; gap: 8px;
+      transition: border-color .15s, background .2s;
+    }
+    .search-input-wrap:focus-within { border-color: var(--text-3); background: var(--surface); }
+    .search-icon { font-size: 14px; opacity: .5; flex-shrink: 0; }
+    .search-input {
+      flex: 1; height: 40px;
+      background: transparent; border: none; outline: none;
+      color: var(--text-1); font-size: 14px; font-family: inherit;
+    }
+    .search-input::placeholder { color: var(--text-4); }
+    .btn-search {
+      height: 40px; padding: 0 20px;
+      background: var(--btn-primary-bg);
+      border: none; border-radius: var(--radius-full);
+      color: var(--btn-primary-text);
+      font-size: 14px; font-weight: 500; font-family: inherit;
+      cursor: pointer; white-space: nowrap;
+      transition: opacity .15s;
+    }
+    .btn-search:hover { opacity: .85; }
+    .search-hint { font-size: 12px; color: var(--text-4); padding: 0 20px 14px; }
+
+    /* ── 结果区 ── */
+    .result-section { display: none; }
+    .result-section.show { display: block; animation: fade-up .2s ease-out; }
+    @keyframes fade-up { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── 客户头部 ── */
+    .cust-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .cust-av {
+      width: 48px; height: 48px; border-radius: 13px;
+      background: var(--btn-primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--btn-primary-text);
+      font-size: 20px; font-weight: 600; flex-shrink: 0;
+    }
+    .cust-info { flex: 1; }
+    .cust-name { font-size: 18px; font-weight: 400; color: var(--text-1); margin-bottom: 8px; }
+    .cust-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      height: 24px; padding: 0 10px;
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      font-size: 12px; color: var(--text-2);
+      display: inline-flex; align-items: center;
+    }
+
+    /* ── 区块卡片 ── */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-head-left { display: flex; align-items: center; gap: 8px; }
+    .section-icon {
+      width: 26px; height: 26px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; background: var(--bg-subtle);
+    }
+    .section-title { font-size: 14px; font-weight: 500; color: var(--text-1); }
+    .section-count { font-size: 12px; color: var(--text-4); }
+
+    /* ── 信息格 ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1px; background: var(--border);
+    }
+    .info-cell {
+      background: var(--surface);
+      padding: 14px 16px;
+      transition: background .12s;
+    }
+    .info-cell:hover { background: var(--bg-hover); }
+    .info-cell-k { font-size: 11px; color: var(--text-4); margin-bottom: 4px; letter-spacing: .02em; }
+    .info-cell-v { font-size: 14px; color: var(--text-1); }
+
+    /* ── 表格 ── */
+    .table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      padding: 10px 16px; text-align: left;
+      font-size: 11px; font-weight: 500; color: var(--text-4);
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .data-table td {
+      padding: 12px 16px; font-size: 13px; color: var(--text-2);
+      border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: var(--bg-hover); }
+
+    /* ── 标签 ── */
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: var(--radius-full);
+      font-size: 11px; font-weight: 500;
+    }
+    .tag::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .tag-green { background: var(--tag-green-bg); color: var(--tag-green-text); }
+    .tag-green::before { background: var(--tag-green-text); }
+    .tag-amber { background: var(--tag-amber-bg); color: var(--tag-amber-text); }
+    .tag-amber::before { background: var(--tag-amber-text); }
+    .tag-red   { background: var(--tag-red-bg);   color: var(--tag-red-text); }
+    .tag-red::before   { background: var(--tag-red-text); }
+    .tag-blue  { background: var(--tag-blue-bg);  color: var(--tag-blue-text); }
+    .tag-blue::before  { background: var(--tag-blue-text); }
+
+    /* ── 空状态 ── */
+    .empty { padding: 32px 16px; text-align: center; font-size: 13px; color: var(--text-4); }
+
+    /* ── 提示 ── */
+    .warn-box {
+      background: var(--tag-amber-bg);
+      border: 1px solid var(--tag-amber-bg);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px; margin-bottom: 12px;
+      font-size: 13px; color: var(--text-2); line-height: 1.6;
+    }
+
+    /* ── 加载 ── */
+    .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 48px; gap: 12px; }
+    .loading-dots { display: flex; gap: 5px; }
+    .loading-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-4); animation: tdot 1.3s ease-in-out infinite; }
+    .loading-dots span:nth-child(2){animation-delay:.2s} .loading-dots span:nth-child(3){animation-delay:.4s}
+    @keyframes tdot{0%,80%,100%{transform:scale(.75);opacity:.35}40%{transform:scale(1);opacity:1}}
+    .loading-text { font-size: 13px; color: var(--text-4); }
+
+    /* ── 浅色：飘落层（礼物 + 梅花花瓣）── */
+    #light-anim {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 9999;
+      overflow: hidden;
+    }
+    .gift-item {
+      position: absolute; top: -50px; font-size: 18px; opacity: .3;
+      animation: fall-gift linear forwards;
+    }
+    @keyframes fall-gift {
+      0%   { transform: translateY(-50px) rotate(0deg);   opacity: 0; }
+      8%   { opacity: .3; }
+      92%  { opacity: .08; }
+      100% { transform: translateY(100vh) rotate(300deg); opacity: 0; }
+    }
+    .petal-item {
+      position: absolute; top: -30px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: fall-petal linear forwards;
+      opacity: 0;
+    }
+    @keyframes fall-petal {
+      0%   { transform: translateY(-30px) rotate(0deg)   translateX(0);    opacity: 0; }
+      5%   { opacity: .85; }
+      50%  { transform: translateY(50vh)  rotate(180deg) translateX(30px);  opacity: .7; }
+      90%  { opacity: .2; }
+      100% { transform: translateY(105vh) rotate(360deg) translateX(-20px); opacity: 0; }
+    }
+
+    /* ── 深色：全屏星星 Canvas ── */
+    #star-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none; z-index: 50;
+      display: none;
+    }
+
+    @media(max-width:560px){
+      .search-row { flex-direction: column; }
+      .cust-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    (function(){ var t=localStorage.getItem('theme'); if(t==='dark') document.documentElement.setAttribute('data-theme','dark'); })();
+  </script>
+
+  <!-- 浅色飘落层 -->
+  <div id="light-anim"></div>
+
+  <!-- 深色星星 Canvas -->
+  <canvas id="star-canvas"></canvas>
+
+  <!-- 导航：仅保留返回主界面，其它模块入口只在主界面或数据看板侧栏，避免重复按键 -->
+  <nav class="nav">
+    <div class="nav-left">
+      <span class="nav-logo" style="cursor:default;">
+        <div class="nav-logo-mark">🔍</div>
+        客户档案检索
+      </span>
+      <span class="nav-badge">管理后台</span>
+    </div>
+    <div class="nav-right">
+      <button class="btn-ghost-sm" id="themeBtn">深色</button>
+      <a href="/home" class="btn-ghost-sm">← 返回主界面</a>
+    </div>
+  </nav>
+
+  <!-- 主体 -->
+  <div class="page">
+
+    <!-- 搜索卡片 -->
+    <div class="search-card">
+      <div class="search-card-inner">
+        <p class="search-label">客户档案检索</p>
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="customerIdInput"
+                   placeholder="请输入客户 ID（如 C001）">
+          </div>
+          <button class="btn-search" onclick="searchCustomer()">查询</button>
+        </div>
+      </div>
+      <p class="search-hint">输入客户唯一 ID 查询完整档案，包括订单、商品及情绪记录</p>
+    </div>
+
+    <!-- 结果 -->
+    <div class="result-section" id="resultSection">
+      <div id="resultContent"></div>
+    </div>
+
+  </div>
+
+  <script>
+  /* ══════════════════════════════════════════
+     浅色：礼物雨 + 梅花花瓣雨（5秒后消失）
+  ══════════════════════════════════════════ */
+  var _lightAnimDone = false;
+  function startLightAnim(){
+    if(_lightAnimDone) return;
+    var c = document.getElementById('light-anim');
+    if(!c) return;
+    c.style.opacity = '1'; c.style.display = 'block';
+    c.innerHTML = '';
+
+    // 礼物雨
+    var gifts = ['🎀','🔔','🎁','🧧','🎉'];
+    function mkGift(){
+      var el = document.createElement('div');
+      el.className = 'gift-item';
+      el.textContent = gifts[Math.floor(Math.random()*gifts.length)];
+      el.style.left = Math.random()*95 + '%';
+      el.style.animationDuration = (4+Math.random()*3) + 's';
+      el.style.animationDelay    = Math.random()*1.5 + 's';
+      c.appendChild(el);
+      setTimeout(function(){ el.remove(); }, 7000);
+    }
+    for(var i=0;i<10;i++) setTimeout(mkGift, i*400);
+
+    // 梅花花瓣雨
+    var petalColors = [
+      '#FF3D7F','#FF6699','#FF99BB','#FF1A6C',
+      '#FF4488','#FF77AA','#FF2266','#FFAACC',
+      '#FF5599','#FF88BB'
+    ];
+    function mkPetal(){
+      var el = document.createElement('div');
+      el.className = 'petal-item';
+      el.style.background = petalColors[Math.floor(Math.random()*petalColors.length)];
+      el.style.left   = Math.random()*98 + '%';
+      el.style.width  = (8+Math.random()*6) + 'px';
+      el.style.height = (11+Math.random()*7) + 'px';
+      el.style.animationDuration = (3.5+Math.random()*3) + 's';
+      el.style.animationDelay    = Math.random()*2 + 's';
+      el.style.transform = 'rotate(' + Math.floor(Math.random()*360) + 'deg)';
+      c.appendChild(el);
+      setTimeout(function(){ el.remove(); }, 7000);
+    }
+    for(var j=0;j<30;j++) setTimeout(mkPetal, j*120);
+
+    // 5秒后淡出消失
+    setTimeout(function(){
+      c.style.transition = 'opacity 1s';
+      c.style.opacity = '0';
+      setTimeout(function(){ c.style.display='none'; }, 1000);
+      _lightAnimDone = true;
+    }, 5000);
+  }
+
+  /* ══════════════════════════════════════════
+     深色：全屏星星持续闪烁 Canvas
+  ══════════════════════════════════════════ */
+  (function(){
+    var canvas = document.getElementById('star-canvas');
+    var ctx = canvas.getContext('2d');
+    var W, H, stars = [], raf = null, running = false;
+
+    function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+
+    function initStars(){
+      resize(); stars=[];
+      for(var i=0;i<280;i++){
+        stars.push({
+          x: Math.random()*W, y: Math.random()*H,
+          r: Math.random()*1.6+0.2,
+          brightness: Math.random(),
+          twinkleSpeed: 0.4+Math.random()*2.5,
+          twinklePhase: Math.random()*Math.PI*2,
+          color: ['#FFFFFF','#E8F0FF','#FFE8D0','#D0E8FF','#FFF8E0','#C8D8FF'][Math.floor(Math.random()*6)]
+        });
+      }
+    }
+    function hexToRgba(hex,a){
+      if(hex==='#FFFFFF') return 'rgba(255,255,255,'+a+')';
+      var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+      return 'rgba('+r+','+g+','+b+','+a+')';
+    }
+    function draw(ts){
+      ctx.clearRect(0,0,W,H);
+      var now=ts/1000;
+      var elapsed = now - _startTime;
+      stars.forEach(function(s){
+        if(elapsed < s.appearAt) return;
+        var fadeIn = Math.min(1, (elapsed - s.appearAt) / 0.4);
+        var twinkle=0.5+0.5*Math.sin(now*s.twinkleSpeed+s.twinklePhase);
+        var alpha=(0.12+0.33*twinkle)*(0.5+s.brightness*0.5)*fadeIn;
+        if(s.r>1.2){
+          var glow=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*3.5);
+          glow.addColorStop(0,hexToRgba(s.color,alpha*0.18));
+          glow.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=glow;
+          ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3.5,0,Math.PI*2); ctx.fill();
+        }
+        ctx.fillStyle=hexToRgba(s.color,alpha);
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+      });
+      if(running) raf=requestAnimationFrame(draw);
+    }
+    function startStars(){
+      if(running) return;
+      running=true; initStars();
+      canvas.style.display='block';
+      _startTime = performance.now()/1000;
+      raf=requestAnimationFrame(draw);
+    }
+    function stopStars(){ running=false; if(raf)cancelAnimationFrame(raf); ctx.clearRect(0,0,W,H); canvas.style.display='none'; }
+    window.addEventListener('resize',function(){ if(running) initStars(); });
+    window._starsStart=startStars;
+    window._starsStop=stopStars;
+  })();
+
+  /* ══════════════════════════════════════════
+     主题切换（含动画联动）
+  ══════════════════════════════════════════ */
+  (function(){
+    var btn=document.getElementById('themeBtn');
+    function apply(t){
+      if(t==='dark'){
+        document.documentElement.setAttribute('data-theme','dark');
+        btn.textContent='浅色';
+        var la=document.getElementById('light-anim');
+        if(la) la.style.display='none';
+        window._starsStart && window._starsStart();
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        btn.textContent='深色';
+        window._starsStop && window._starsStop();
+        _lightAnimDone=false;
+        var la=document.getElementById('light-anim');
+        if(la){ la.style.display='block'; la.style.opacity='1'; }
+        startLightAnim();
+      }
+    }
+    apply(localStorage.getItem('theme')||'light');
+    btn.addEventListener('click',function(){
+      var cur=document.documentElement.getAttribute('data-theme');
+      var next=cur==='dark'?'light':'dark';
+      apply(next); localStorage.setItem('theme',next);
+    });
+  })();
+
+  // ==================== 页面加载时检查登录状态 ====================
+  (function(){
+    var token = localStorage.getItem('admin_access_token') || localStorage.getItem('agent_access_token');
+    if (!token) {
+      // 未登录，重定向到登录页
+      window.location.href = '/admin/login';
+      return;
+    }
+  })();
+
+  document.getElementById('customerIdInput').addEventListener('keypress',function(e){ if(e.key==='Enter') searchCustomer(); });
+
+  // ==================== Token 工具函数 ====================
+  function getAuthToken() {
+    return localStorage.getItem('admin_access_token') || localStorage.getItem('agent_access_token');
+  }
+
+  function getAuthHeaders() {
+    var token = getAuthToken();
+    return token ? { 'Authorization': 'Bearer ' + token } : {};
+  }
+
+  // 401 自动跳转登录页
+  function handleUnauthorized() {
+    localStorage.removeItem('admin_access_token');
+    localStorage.removeItem('admin_refresh_token');
+    localStorage.removeItem('agent_access_token');
+    localStorage.removeItem('agent_refresh_token');
+    alert('登录已过期，请重新登录');
+    window.location.href = '/admin/login';
+  }
+
+  // 通用安全 fetch，自动携带 Token 并处理 401
+  async function secureFetch(url, options) {
+    var token = getAuthToken();
+    var defaultOptions = {
+      headers: Object.assign(
+        { 'Content-Type': 'application/json' },
+        getAuthHeaders()
+      )
+    };
+    var finalOptions = Object.assign({}, defaultOptions, options || {}, {
+      headers: Object.assign({}, defaultOptions.headers, (options || {}).headers || {})
+    });
+    var res = await fetch(url, finalOptions);
+    if (res.status === 401) {
+      handleUnauthorized();
+      throw new Error('Unauthorized');
+    }
+    return res;
+  }
+
+  async function searchCustomer(){
+    var id=document.getElementById('customerIdInput').value.trim();
+    var section=document.getElementById('resultSection');
+    var content=document.getElementById('resultContent');
+    if(!id){ alert('请输入客户 ID'); return; }
+    section.classList.add('show');
+    content.innerHTML='<div class="section-card"><div class="loading-wrap"><div class="loading-dots"><span></span><span></span><span></span></div><div class="loading-text">查询中…</div></div></div>';
+    // 未登录时提示
+    if (!getAuthToken()) {
+      content.innerHTML='<div class="section-card"><div class="empty">未登录或登录已过期，请 <a href="/admin/login">重新登录</a></div></div>';
+      return;
+    }
+    try{
+      var res=await secureFetch('/api/admin/customer/'+id);
+      var raw=await res.text();
+      var data=null;
+      try{ data=raw?JSON.parse(raw):null; }catch(e){ content.innerHTML='<div class="section-card"><div class="empty">服务器返回非 JSON（'+res.status+'）</div></div>'; return; }
+      if(!res.ok){ content.innerHTML='<div class="section-card"><div class="empty">请求失败 '+res.status+(data&&data.message?'：'+data.message:'')+'</div></div>'; return; }
+      if(data&&data.success) renderProfile(data.data);
+      else content.innerHTML='<div class="section-card"><div class="empty">'+(data&&data.message?data.message:'查询失败')+'</div></div>';
+    }catch(err){
+      if (err.message === 'Unauthorized') return;
+      content.innerHTML='<div class="section-card"><div class="empty">连接失败，请确认后端已启动。<br>错误：'+(err.message||'网络异常')+'</div></div>';
+    }
+  }
+
+  function esc(t){ var d=document.createElement('div'); d.textContent=String(t??''); return d.innerHTML; }
+
+  function renderProfile(profile){
+    var c=profile.customer||{};
+    var orders=profile.orders||[];
+    var skus=profile.skus||[];
+    var emotions=profile.emotions||[];
+    var html='';
+
+    /* 完整性提示 */
+    var hasInfo=!!(c.phone||c.email||c.region);
+    var hasRec=orders.length>0||skus.length>0||emotions.length>0;
+    if(!hasInfo||!hasRec){
+      html+='<div class="warn-box">💡 当前仅查到客户 ID，部分信息为空。请确认 Neo4j 节点属性完整，以及订单/情绪关系已创建。</div>';
+    }
+
+    /* 客户头部 */
+    var name=c.name||'未知客户';
+    html+='<div class="cust-header">'+
+      '<div class="cust-av">'+esc(name.charAt(0))+'</div>'+
+      '<div class="cust-info">'+
+        '<div class="cust-name">'+esc(name)+'</div>'+
+        '<div class="cust-chips">'+
+          '<span class="chip">📱 '+esc(c.phone||'-')+'</span>'+
+          '<span class="chip">⭐ '+esc(c.level||c.m_value||'普通会员')+'</span>'+
+          '<span class="chip">🌍 '+esc(c.region||'-')+'</span>'+
+          '<span class="chip">🆔 '+esc(c.customer_id||c.id||'-')+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+    /* 基本信息 */
+    html+='<div class="section-card">'+
+      '<div class="section-head">'+
+        '<div class="section-head-left"><div class="section-icon">👤</div><span class="section-title">基本信息</span></div>'+
+      '</div>'+
+      '<div class="info-grid">'+
+        iCell('客户 ID',c.customer_id||c.id)+
+        iCell('手机号',c.phone)+
+        iCell('地区',c.region)+
+        iCell('会员等级',c.level||c.m_value||'普通')+
+        iCell('注册时间',c.member_since||c.register_date)+
+      '</div>'+
+    '</div>';
+
+    /* 订单 */
+    html+='<div class="section-card">'+
+      '<div class="section-head">'+
+        '<div class="section-head-left"><div class="section-icon">📦</div><span class="section-title">订单记录</span></div>'+
+        '<span class="section-count">'+orders.length+' 条</span>'+
+      '</div>';
+    if(orders.length>0){
+      html+='<div class="table-wrap"><table class="data-table"><thead><tr><th>订单 ID</th><th>日期</th><th>金额</th><th>状态</th><th>商品</th></tr></thead><tbody>';
+      orders.forEach(function(o){
+        var items=Array.isArray(o.items)?o.items.join('、'):(o.items||'-');
+        if(items.length>80) items=items.substring(0,80)+'…';
+        html+='<tr>'+
+          '<td style="color:var(--text-1);">'+esc(o.order_id||'-')+'</td>'+
+          '<td>'+esc(o.date||'-')+'</td>'+
+          '<td style="color:var(--text-1);">¥'+esc(o.total||0)+'</td>'+
+          '<td>'+statusTag(o.status)+'</td>'+
+          '<td>'+esc(items)+'</td>'+
+        '</tr>';
+      });
+      html+='</tbody></table></div>';
+    } else { html+='<div class="empty">暂无订单记录</div>'; }
+    html+='</div>';
+
+    /* 商品 */
+    html+='<div class="section-card">'+
+      '<div class="section-head">'+
+        '<div class="section-head-left"><div class="section-icon">🛍️</div><span class="section-title">购买商品</span></div>'+
+        '<span class="section-count">'+skus.length+' 件</span>'+
+      '</div>';
+    if(skus.length>0){
+      html+='<div class="table-wrap"><table class="data-table"><thead><tr><th>商品 ID</th><th>商品名称</th><th>分类</th><th>价格</th><th>数量</th></tr></thead><tbody>';
+      skus.forEach(function(s){
+        html+='<tr>'+
+          '<td style="color:var(--text-1);">'+esc(s.product_id||s.sku_id||'-')+'</td>'+
+          '<td>'+esc(s.name||'-')+'</td>'+
+          '<td><span class="tag tag-blue">'+esc(s.category||'-')+'</span></td>'+
+          '<td>¥'+esc(s.price||0)+'</td>'+
+          '<td>'+esc(s.quantity||1)+'</td>'+
+        '</tr>';
+      });
+      html+='</tbody></table></div>';
+    } else { html+='<div class="empty">暂无购买记录</div>'; }
+    html+='</div>';
+
+    /* 情绪 */
+    html+='<div class="section-card">'+
+      '<div class="section-head">'+
+        '<div class="section-head-left"><div class="section-icon">💭</div><span class="section-title">情绪记录</span></div>'+
+        '<span class="section-count">'+emotions.length+' 条</span>'+
+      '</div>';
+    if(emotions.length>0){
+      html+='<div class="table-wrap"><table class="data-table"><thead><tr><th>日期</th><th>类型</th><th>评分</th><th>来源</th><th>备注</th></tr></thead><tbody>';
+      emotions.forEach(function(e){
+        html+='<tr>'+
+          '<td>'+esc(e.date||'-')+'</td>'+
+          '<td>'+emotionTag(e.type)+'</td>'+
+          '<td>'+esc(e.score||'-')+'</td>'+
+          '<td>'+esc(e.source||'-')+'</td>'+
+          '<td>'+esc(e.notes||'-')+'</td>'+
+        '</tr>';
+      });
+      html+='</tbody></table></div>';
+    } else { html+='<div class="empty">暂无情绪记录</div>'; }
+    html+='</div>';
+
+    document.getElementById('resultContent').innerHTML=html;
+  }
+
+  function iCell(k,v){
+    return '<div class="info-cell"><div class="info-cell-k">'+esc(k)+'</div><div class="info-cell-v">'+esc(v||'-')+'</div></div>';
+  }
+  function statusTag(status){
+    if(!status) return '-';
+    var s=status.toLowerCase();
+    var cls='tag-blue';
+    if(s.includes('completed')||s.includes('完成')) cls='tag-green';
+    else if(s.includes('pending')||s.includes('待')) cls='tag-amber';
+    else if(s.includes('cancel')||s.includes('取消')) cls='tag-red';
+    return '<span class="tag '+cls+'">'+esc(status)+'</span>';
+  }
+  function emotionTag(type){
+    if(!type) return '-';
+    var t=type.toLowerCase();
+    var cls='tag-amber';
+    if(t.includes('positive')||t.includes('happy')||t.includes('满意')) cls='tag-green';
+    else if(t.includes('negative')||t.includes('angry')||t.includes('不满')) cls='tag-red';
+    return '<span class="tag '+cls+'">'+esc(type)+'</span>';
+  }
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# ============================================================
+# Chaos Experiment: kill-seller-pod
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/kill-seller-pod.yaml
+# 查看状态:
+#   kubectl get workflow kill-seller-pod-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/kill-seller-pod.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  experiment: kill-seller-pod
+  expected_recovery_time: 30s
+spec:
+  action: pod-failure
+  mode: one
+  duration: 30s
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: ruitalk-seller

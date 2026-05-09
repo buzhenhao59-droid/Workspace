@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>评价管理 · Ruitalk</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    :root{--bg:#FFFFFF;--bg-subtle:#F9F9F8;--bg-hover:#F4F4F2;--surface:#FFFFFF;--text-1:#34322D;--text-2:#6B6860;--text-3:#9B9890;--text-4:#C4C1B8;--border:#E5E7EB;--border-soft:rgba(0,0,0,0.06);--btn-primary-bg:#1A1A19;--btn-primary-text:#FFFFFF;--radius-sm:8px;--radius-md:12px;--radius-lg:22px;--radius-full:9999px;--shadow-sm:0 1px 3px rgba(0,0,0,0.06);--shadow-md:0 4px 16px rgba(0,0,0,0.07);}
+    [data-theme="dark"]{--bg:#1A1A18;--bg-subtle:#222220;--bg-hover:#2A2A28;--surface:#242422;--text-1:#F0EFE8;--text-2:#A8A59C;--text-3:#706D64;--text-4:#504D46;--border:rgba(255,255,255,0.08);--border-soft:rgba(255,255,255,0.05);--btn-primary-bg:#F0EFE8;--btn-primary-text:#1A1A18;}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;font-size:14px;line-height:1.6;background:var(--bg);color:var(--text-1);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
+    .nav{position:sticky;top:0;z-index:50;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--bg);border-bottom:1px solid var(--border);}
+    .nav-left{display:flex;align-items:center;gap:8px;}
+    .nav-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--text-1);text-decoration:none;}
+    .nav-logo-mark{width:30px;height:30px;border-radius:9px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;}
+    .nav-logo-mark svg{width:17px;height:17px;}
+    .nav-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+    .nav-page-title{font-size:13px;color:var(--text-3);}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .btn-ghost{height:32px;padding:0 14px;background:transparent;border:1px solid rgba(0,0,0,0.10);border-radius:var(--radius-sm);color:var(--text-1);font-size:13px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s;}
+    .btn-ghost:hover{background:var(--bg-hover);}
+    .btn-ghost svg{width:14px;height:14px;}
+    .page{max-width:1100px;margin:0;padding:24px 24px 60px;}
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;}
+    .stat-num{font-size:22px;font-weight:700;color:var(--text-1);line-height:1.2;}
+    .stat-label{font-size:11px;color:var(--text-4);margin-top:3px;}
+    .tabs-bar{display:flex;gap:2px;margin-bottom:16px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:4px;}
+    .tab-btn{height:32px;padding:0 16px;background:transparent;border:none;border-radius:var(--radius-sm);font-size:13px;color:var(--text-3);font-family:inherit;cursor:pointer;transition:background .15s,color .15s;}
+    .tab-btn.active{background:var(--surface);color:var(--text-1);font-weight:500;box-shadow:var(--shadow-sm);}
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+    .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+    .filter-group{display:flex;flex-direction:column;gap:4px;}
+    .filter-label{font-size:11px;color:var(--text-4);letter-spacing:.04em;text-transform:uppercase;}
+    .filter-chips{display:flex;gap:4px;flex-wrap:wrap;}
+    .chip{height:26px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-full);font-size:12px;color:var(--text-2);font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s,color .15s;display:inline-flex;align-items:center;}
+    .chip:hover{background:var(--bg-hover);}
+    .chip.active{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .filter-select{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;cursor:pointer;outline:none;}
+    .filter-input{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;outline:none;width:130px;}
+    .filter-input:focus,.filter-select:focus{border-color:var(--text-3);}
+    .btn-action{height:28px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s,color .15s;background:transparent;color:var(--text-2);}
+    .btn-action:hover{background:var(--bg-hover);color:var(--text-1);}
+    .btn-action-primary{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .btn-action-primary:hover{opacity:.88;}
+    .btn-action svg{width:12px;height:12px;}
+    /* review card */
+    .review-list{display:flex;flex-direction:column;gap:8px;}
+    .review-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;transition:border-color .15s;}
+    .review-card:hover{border-color:var(--text-4);}
+    .review-card.negative{border-left:3px solid #EF4444;}
+    .review-card.positive{border-left:3px solid #22C55E;}
+    .review-card.neutral{border-left:3px solid #F59E0B;}
+    .review-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+    .review-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .review-author{font-weight:600;font-size:13px;}
+    .stars{display:flex;gap:1px;}
+    .star-filled{color:#F59E0B;}
+    .star-empty{color:var(--text-4);}
+    .review-content{font-size:13px;color:var(--text-2);margin-bottom:8px;line-height:1.6;}
+    .review-reply{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text-2);margin-top:6px;}
+    .review-reply-label{font-size:11px;font-weight:600;color:var(--text-3);margin-bottom:3px;}
+    .review-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+    .review-date{font-size:11px;color:var(--text-4);}
+    /* badge */
+    .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--radius-full);font-size:11px;font-weight:500;white-space:nowrap;}
+    .b-amber{background:rgba(245,158,11,.10);color:#B45309;}
+    .b-green{background:rgba(34,197,94,.10);color:#16A34A;}
+    .b-gray{background:rgba(107,114,128,.10);color:#374151;}
+    .b-red{background:rgba(239,68,68,.10);color:#DC2626;}
+    .b-dark{background:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    [data-theme="dark"] .b-amber{color:#FCD34D;}
+    [data-theme="dark"] .b-green{color:#4ADE80;}
+    [data-theme="dark"] .b-red{color:#FCA5A5;}
+    /* rule/template card */
+    .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+    .item-card.rule-positive{border-left:3px solid #22C55E;}
+    .item-card.rule-neutral{border-left:3px solid #F59E0B;}
+    .item-card.rule-negative{border-left:3px solid #EF4444;}
+    .item-card.template-default{border-left:3px solid var(--btn-primary-bg);}
+    .item-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+    .item-body{font-size:12px;color:var(--text-2);}
+    .item-actions{display:flex;gap:5px;flex-shrink:0;}
+    /* modal */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);padding:24px;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .modal-title{font-size:15px;font-weight:600;}
+    .modal-close{width:28px;height:28px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);}
+    .modal-close:hover{background:var(--bg-hover);}
+    .modal-close svg{width:14px;height:14px;}
+    .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+    .btn-modal-cancel{height:32px;padding:0 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-2);font-family:inherit;cursor:pointer;}
+    .btn-modal-cancel:hover{background:var(--bg-hover);}
+    .btn-modal-submit{height:32px;padding:0 14px;background:var(--btn-primary-bg);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--btn-primary-text);font-family:inherit;cursor:pointer;transition:opacity .15s;}
+    .btn-modal-submit:hover{opacity:.88;}
+    .form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+    .form-label-sm{font-size:12px;color:var(--text-3);font-weight:500;}
+    .form-input{height:32px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;}
+    .form-input:focus{border-color:var(--text-3);}
+    .form-select{height:32px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;cursor:pointer;}
+    .form-textarea{padding:8px 10px;min-height:80px;resize:vertical;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;width:100%;}
+    .form-textarea:focus{border-color:var(--text-3);}
+    .quick-reply-btns{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+    .state-empty{text-align:center;padding:40px 20px;color:var(--text-4);font-size:13px;}
+    .state-empty svg{width:28px;height:28px;margin:0 auto 8px;display:block;}
+    .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+    .select-all-row{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);margin-bottom:8px;}
+    @media(max-width:600px){.stat-row{grid-template-columns:1fr 1fr;}.nav{padding:0 16px;}.page{padding:16px 16px 40px;}}
+  
+    /* ─── 侧边栏 ─── */
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{width:200px;flex-shrink:0;background:var(--bg-subtle);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:background .3s,border-color .3s;}
+    .sidebar-logo{display:flex;align-items:center;gap:9px;padding:18px 16px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-1);}
+    .sidebar-logo-mark{width:28px;height:28px;border-radius:8px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s;}
+    .sidebar-logo-mark svg{width:15px;height:15px;}
+    .sidebar-logo-text{font-size:13px;font-weight:600;letter-spacing:-0.01em;}
+    .sidebar-nav{flex:1;padding:8px;overflow-y:auto;}
+    .snav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13px;transition:background .15s,color .15s;margin-bottom:2px;}
+    .snav-item:hover{background:var(--bg-hover);color:var(--text-1);}
+    .snav-item.active{background:var(--bg-hover);color:var(--text-1);font-weight:500;}
+    .snav-item svg{width:15px;height:15px;flex-shrink:0;}
+    .sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;}
+    .sfooter-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--text-3);text-decoration:none;font-size:12px;background:none;border:none;font-family:inherit;cursor:pointer;width:100%;text-align:left;transition:background .15s,color .15s;}
+    .sfooter-btn:hover{background:var(--bg-hover);color:var(--text-1);}
+    .sfooter-btn svg{width:14px;height:14px;flex-shrink:0;}
+    .main-wrap{margin-left:200px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    @media(max-width:640px){.sidebar{display:none;}.main-wrap{margin-left:0;}}
+
+  </style>
+</head>
+<body>
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="/home" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+        </div>
+        <span class="sidebar-logo-text">客服管理</span>
+      </a>
+      <nav class="sidebar-nav">
+        <a href="/admin/dashboard-overview" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>数据看板</a>
+        <a href="/admin/orders.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>全部订单</a>
+        <a href="/admin/message-center" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>消息中心</a>
+        <a href="/admin/evaluation.html" class="snav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>评价管理</a>
+        <a href="/admin/pre-sale-notes.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>售前处理</a>
+        <a href="/admin/after-sales.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>售后服务</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/home" class="sfooter-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>返回主界面</a>
+        <button class="sfooter-btn" id="themeBtn2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>深色模式</button>
+      </div>
+    </aside>
+    <div class="main-wrap">
+
+
+  <nav class="nav">
+    <div class="nav-left">
+      <a href="/home" class="nav-logo">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+        </div>
+        拓岳科技
+      </a>
+      <div class="nav-sep"></div>
+      <span class="nav-page-title">评价管理</span>
+    </div>
+    <div class="nav-right">
+      <button class="btn-ghost" id="notifBtn" title="通知" onclick="showNotifs()" style="position:relative">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#DC2626;color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
+      </button>
+      <a href="/home" class="btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        主界面
+      </a>
+      <button class="btn-ghost" id="themeBtn">深色</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">总评价数</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-pending" style="color:#B45309">0</div><div class="stat-label">待回复</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-replied" style="color:#16A34A">0</div><div class="stat-label">已回复</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-rating">0.0</div><div class="stat-label">平均评分</div></div>
+    </div>
+
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchTab('reviews',this)">评价列表</button>
+      <button class="tab-btn" onclick="switchTab('rules',this)">自动回复规则</button>
+      <button class="tab-btn" onclick="switchTab('templates',this)">回复模板</button>
+    </div>
+
+    <!-- 评价列表 -->
+    <div class="tab-pane active" id="tab-reviews">
+      <div class="filter-card">
+        <div class="filter-group">
+          <div class="filter-label">平台</div>
+          <div class="filter-chips" id="platformChips">
+            <button class="chip active" data-platform="">全部</button>
+            <button class="chip" data-platform="amazon">Amazon</button>
+            <button class="chip" data-platform="ebay">eBay</button>
+            <button class="chip" data-platform="shopify">Shopify</button>
+            <button class="chip" data-platform="tiktok">TikTok</button>
+            <button class="chip" data-platform="shopee">Shopee</button>
+            <button class="chip" data-platform="lazada">Lazada</button>
+            <button class="chip" data-platform="aliexpress">AliExpress</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">状态</div>
+          <select class="filter-select" id="filter-status">
+            <option value="">全部状态</option>
+            <option value="pending">待回复</option>
+            <option value="replied">已回复</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">星级</div>
+          <select class="filter-select" id="filter-star">
+            <option value="">全部星级</option>
+            <option value="5">5星 好评</option>
+            <option value="4">4星 好评</option>
+            <option value="3">3星 中评</option>
+            <option value="2">2星 差评</option>
+            <option value="1">1星 差评</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">日期范围</div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <input type="date" class="filter-input" id="filter-start-date" style="width:120px">
+            <span style="color:var(--text-4);font-size:12px">—</span>
+            <input type="date" class="filter-input" id="filter-end-date" style="width:120px">
+          </div>
+        </div>
+        <div class="filter-group" style="flex-direction:row;gap:6px;align-items:flex-end">
+          <button class="btn-action btn-action-primary" id="btn-refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+            刷新
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn-action btn-action-primary" id="btn-auto-reply">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          一键自动回评
+        </button>
+        <button class="btn-action" id="btn-batch-reply" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          批量回复
+        </button>
+        <button class="btn-action" id="btn-export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导出 CSV
+        </button>
+      </div>
+
+      <div class="select-all-row">
+        <input type="checkbox" id="select-all">
+        <label for="select-all" style="cursor:pointer">全选</label>
+      </div>
+
+      <div class="review-list" id="review-list">
+        <div class="state-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          加载中…
+        </div>
+      </div>
+    </div>
+
+    <!-- 自动回复规则 -->
+    <div class="tab-pane" id="tab-rules">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn-action btn-action-primary" onclick="openRuleModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加规则
+        </button>
+      </div>
+      <div id="rule-list">
+        <div class="state-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          暂无规则
+        </div>
+      </div>
+    </div>
+
+    <!-- 回复模板 -->
+    <div class="tab-pane" id="tab-templates">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn-action btn-action-primary" onclick="openTemplateModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加模板
+        </button>
+      </div>
+      <div id="template-list">
+        <div class="state-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          暂无模板
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 回复评价弹窗 -->
+  <div class="modal-overlay" id="replyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">回复评价</span>
+        <button class="modal-close" onclick="closeModal('replyModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <div class="form-label-sm">评价内容</div>
+        <div id="reply-content" style="padding:10px 12px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-2)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label-sm">快捷模板</div>
+        <div class="quick-reply-btns" id="quick-reply-btns"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label-sm">回复内容</div>
+        <textarea class="form-textarea" id="reply-text" placeholder="输入回复内容…"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('replyModal')">取消</button>
+        <button class="btn-modal-submit" id="btn-submit-reply">提交回复</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加规则弹窗 -->
+  <div class="modal-overlay" id="ruleModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">自动回复规则</span>
+        <button class="modal-close" onclick="closeModal('ruleModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <label class="form-label-sm">规则类型</label>
+        <select class="form-select" id="rule-type">
+          <option value="star_rating">按星级</option>
+          <option value="keyword">按关键词</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label-sm">最低星级</label>
+          <select class="form-select" id="rule-star-min">
+            <option value="1">1星</option><option value="2">2星</option><option value="3">3星</option><option value="4">4星</option><option value="5">5星</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label-sm">最高星级</label>
+          <select class="form-select" id="rule-star-max">
+            <option value="1">1星</option><option value="2">2星</option><option value="3">3星</option><option value="4">4星</option><option value="5" selected>5星</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label-sm">回复内容</label>
+        <textarea class="form-textarea" id="rule-content" placeholder="自动回复的内容…"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="rule-enabled" checked> 立即启用
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('ruleModal')">取消</button>
+        <button class="btn-modal-submit" id="btn-submit-rule">保存规则</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加模板弹窗 -->
+  <div class="modal-overlay" id="templateModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">回复模板</span>
+        <button class="modal-close" onclick="closeModal('templateModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="form-group">
+        <label class="form-label-sm">模板名称</label>
+        <input type="text" class="form-input" id="template-name" placeholder="如：好评感谢模板">
+      </div>
+      <div class="form-group">
+        <label class="form-label-sm">分类</label>
+        <select class="form-select" id="template-category">
+          <option value="好评">好评</option>
+          <option value="中评">中评</option>
+          <option value="差评">差评</option>
+          <option value="通用">通用</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label-sm">模板内容</label>
+        <textarea class="form-textarea" id="template-content" placeholder="模板内容…"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="template-default"> 设为默认模板
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('templateModal')">取消</button>
+        <button class="btn-modal-submit" id="btn-submit-template">保存模板</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== 统一认证工具函数 ====================
+    function getAuthToken() {
+      return localStorage.getItem('admin_access_token') || localStorage.getItem('agent_access_token');
+    }
+
+    function handleUnauthorized() {
+      localStorage.removeItem('admin_access_token');
+      localStorage.removeItem('admin_refresh_token');
+      localStorage.removeItem('agent_access_token');
+      localStorage.removeItem('agent_refresh_token');
+      alert('登录已过期，请重新登录');
+      window.location.href = '/admin/login';
+    }
+
+    // 统一 fetch，自动携带 Token 并处理 401
+    var _origFetch = window.fetch;
+    window.fetch = function(input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url);
+      // 仅处理 /api/ 请求
+      if (typeof url === 'string' && url.indexOf('/api/') === 0) {
+        var token = getAuthToken();
+        init = init || {};
+        var headers = Object.assign({}, init.headers || {}, {
+          'Content-Type': 'application/json'
+        });
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+        }
+        init.headers = headers;
+      }
+      return _origFetch.call(window, input, init).then(function(res) {
+        // API 请求收到 401 自动跳转
+        if (res.status === 401) {
+          var url2 = typeof input === 'string' ? input : (input && input.url);
+          if (url2 && url2.indexOf('/api/') === 0) {
+            handleUnauthorized();
+          }
+        }
+        return res;
+      }).catch(function(e) {
+        return Promise.reject(e);
+      });
+    };
+
+    // 页面加载时检查登录
+    (function(){
+      if (!getAuthToken()) {
+        window.location.href = '/admin/login';
+      }
+    })();
+
+    let selectedReviews=[];
+    let currentReplyReviewId=null;
+    let editingRuleId=null;
+    let editingTemplateId=null;
+    let templates=[];
+    let currentPlatform='';
+
+    function switchTab(id,btn){
+      document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.getElementById('tab-'+id).classList.add('active');
+      btn.classList.add('active');
+    }
+    function openModal(id){document.getElementById(id).classList.add('open');}
+    function closeModal(id){document.getElementById(id).classList.remove('open');}
+    document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});});
+
+    function openRuleModal(){editingRuleId=null;openModal('ruleModal');}
+    function openTemplateModal(){editingTemplateId=null;document.getElementById('template-name').value='';document.getElementById('template-content').value='';document.getElementById('template-default').checked=false;openModal('templateModal');}
+
+    const platformColors={amazon:'#FF9900',ebay:'#E53238',shopify:'#96BF48',tiktok:'#000000',shopee:'#FF5722',lazada:'#0D0D0D',aliexpress:'#FF6A00',other:'#6c757d'};
+
+    function starsHtml(n){var h='';for(var i=1;i<=5;i++)h+='<span class="'+(i<=n?'star-filled':'star-empty')+'">★</span>';return '<div class="stars">'+h+'</div>';}
+
+    async function loadStats(){
+      try{var res=await fetch('/api/admin/reviews/stats');var data=await res.json();if(data.success){var s=data.data||data.stats||{};document.getElementById('stat-total').textContent=s.total||0;document.getElementById('stat-pending').textContent=s.pending||0;document.getElementById('stat-replied').textContent=s.replied||0;document.getElementById('stat-rating').textContent=(s.avg_rating||0).toFixed(1);}}catch(e){console.error(e);}
+    }
+
+    async function loadReviews(){
+      var status=document.getElementById('filter-status').value;
+      var star=document.getElementById('filter-star').value;
+      var startDate=document.getElementById('filter-start-date').value;
+      var endDate=document.getElementById('filter-end-date').value;
+      var url='/api/admin/reviews?limit=100';
+      if(status)url+='&status='+status;
+      if(star)url+='&star='+star;
+      if(currentPlatform)url+='&platform='+currentPlatform;
+      if(startDate)url+='&start_date='+startDate;
+      if(endDate)url+='&end_date='+endDate;
+      try{var res=await fetch(url);var data=await res.json();if(data.success)renderReviews(data.data||data.reviews||[]);}catch(e){console.error(e);}
+    }
+
+    function esc(s){if(!s&&s!==0)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+    function renderReviews(reviews){
+      var container=document.getElementById('review-list');
+      if(!reviews||reviews.length===0){container.innerHTML='<div class="state-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div style="margin-top:8px">暂无评价数据</div><div style="margin-top:4px;font-size:12px;color:var(--text-4)">请先在电商平台积累评价数据，或联系管理员配置平台 API</div></div>';return;}
+      var html='';
+      reviews.forEach(function(r){
+        var cardCls='review-card ';
+        if(r.star_rating<=2)cardCls+='negative';else if(r.star_rating>=4)cardCls+='positive';else cardCls+='neutral';
+        var pc=platformColors[r.platform]||platformColors.other;
+        var pb=r.platform?'<span class="badge" style="background:'+pc+';color:#fff">'+r.platform.toUpperCase()+'</span>':'';
+        var statusBadge=r.status==='pending'?'<span class="badge b-amber">待回复</span>':'<span class="badge b-green">已回复</span>';
+        var replyHtml=r.reply_content?'<div class="review-reply"><div class="review-reply-label">商家回复</div>'+esc(r.reply_content)+'</div>':'';
+        var contentEsc=esc(r.content||'');
+        var replyBtn=r.status==='pending'?'<button class="btn-action btn-action-primary" onclick="openReply(\''+r.review_id+'\',\''+contentEsc.replace(/'/g,"&#39;")+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>回复</button>':'';
+        html+='<div class="'+cardCls+'"><div class="review-header"><div class="review-meta"><input type="checkbox" class="review-checkbox" value="'+esc(r.review_id)+'"'+(r.status==='replied'?' disabled':'')+'><span class="review-author">'+esc(r.customer_name||'匿名用户')+'</span>'+pb+starsHtml(r.star_rating)+statusBadge+(r.is_negative?'<span class="badge b-red">差评</span>':'')+'</div>'+replyBtn+'</div>'+(r.product_name?'<div style="font-size:12px;color:var(--text-3);margin-bottom:4px">商品：'+esc(r.product_name)+'</div>':'')+'<div class="review-content">'+contentEsc+'</div>'+replyHtml+'<div class="review-footer"><span class="review-date">'+(r.review_date||r.created_at||'')+(r.order_id?' &nbsp;·&nbsp; 订单：'+esc(r.order_id):'')+'</span></div></div>';
+      });
+      container.innerHTML=html;
+      document.querySelectorAll('.review-checkbox').forEach(function(cb){cb.addEventListener('change',updateSelectedReviews);});
+    }
+
+    function updateSelectedReviews(){
+      selectedReviews=Array.from(document.querySelectorAll('.review-checkbox:checked')).map(function(cb){return cb.value;});
+      document.getElementById('btn-batch-reply').disabled=selectedReviews.length===0;
+    }
+
+    document.getElementById('select-all').addEventListener('change',function(e){
+      var checked = e.target.checked;
+      document.querySelectorAll('.review-checkbox:not(:disabled)').forEach(function(cb){cb.checked = checked;});
+      updateSelectedReviews();
+    });
+
+    function openReply(reviewId,content){
+      currentReplyReviewId=reviewId;
+      document.getElementById('reply-content').textContent=content||'(无评价内容)';
+      document.getElementById('reply-text').value='';
+      var qb=document.getElementById('quick-reply-btns');
+      if(templates&&templates.length>0){qb.innerHTML=templates.map(function(t){return '<button class="btn-action" onclick="applyTemplate(\''+t.content.replace(/'/g,"&#39;")+'\')">'+t.name+'</button>';}).join('');}
+      else{qb.innerHTML='<span style="font-size:12px;color:var(--text-4)">暂无模板</span>';}
+      openModal('replyModal');
+    }
+
+    function applyTemplate(content){document.getElementById('reply-text').value=content;}
+
+    document.getElementById('btn-submit-reply').addEventListener('click',async function(){
+      var content=document.getElementById('reply-text').value.trim();
+      if(!content)return alert('请输入回复内容');
+      try{var res=await fetch('/api/admin/reviews/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_ids:[currentReplyReviewId],reply_content:content})});var data=await res.json();if(data.success){closeModal('replyModal');loadReviews();loadStats();}else{alert(data.message||'回复失败');}}catch(e){alert('请求失败');}
+    });
+
+    document.getElementById('btn-batch-reply').addEventListener('click',async function(){
+      if(selectedReviews.length===0){alert('请先勾选要回复的评价（只能选择"待回复"状态的评价）');return;}
+      var content=prompt('请输入批量回复内容:');
+      if(!content||!content.trim())return;
+      this.disabled=true;
+      try{var res=await fetch('/api/admin/reviews/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_ids:selectedReviews,reply_content:content.trim()})});var data=await res.json();if(data.success){alert(data.message);loadReviews();loadStats();}else{alert(data.message||'批量回复失败');}}catch(e){alert('请求失败: '+e.message);}finally{this.disabled=false;document.getElementById('btn-batch-reply').disabled=selectedReviews.length===0;}
+    });
+
+    document.getElementById('btn-auto-reply').addEventListener('click',async function(){
+      if(!confirm('确定要对所有待回复评价进行自动回复吗？'))return;
+      this.disabled=true;
+      this.textContent='回复中...';
+      try{
+        // 先获取所有待回复的评价 ID
+        var res=await fetch('/api/admin/reviews?status=pending&limit=500');
+        var json=await res.json();
+        if(!json.success||!json.data||json.data.length===0){alert('当前没有待回复的评价');return;}
+        var pendingIds=json.data.map(function(r){return r.review_id;});
+        // 调用自动回复接口
+        var res2=await fetch('/api/admin/reviews/auto-reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_ids:pendingIds})});
+        var data2=await res2.json();
+        if(data2.success){alert(data2.message);}else{alert(data2.message||'自动回复失败');}
+      }catch(e){alert('请求失败: '+e.message);}
+      finally{this.disabled=false;this.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>一键自动回评';}
+      loadReviews();loadStats();
+    });
+
+    async function loadRules(){
+      try{var res=await fetch('/api/admin/auto-reply-rules');var data=await res.json();if(data.success)renderRules(data.data);}catch(e){console.error(e);}
+    }
+
+    function renderRules(rules){
+      var container=document.getElementById('rule-list');
+      if(!rules||rules.length===0){container.innerHTML='<div class="state-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>暂无规则</div>';return;}
+      var html='';
+      rules.forEach(function(r){
+        var cls=r.star_min<=2?'rule-negative':r.star_min<=3?'rule-neutral':'rule-positive';
+        html+='<div class="item-card '+cls+'"><div><div class="item-title">'+r.star_min+'–'+r.star_max+' 星 <span class="badge '+(r.is_enabled?'b-green':'b-gray')+'">'+(r.is_enabled?'已启用':'已禁用')+'</span></div><div class="item-body">'+r.reply_content+'</div></div><div class="item-actions"><button class="btn-action" onclick="toggleRule('+r.id+','+(r.is_enabled?0:1)+')">'+(r.is_enabled?'禁用':'启用')+'</button><button class="btn-action" onclick="deleteRule('+r.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></div>';
+      });
+      container.innerHTML=html;
+    }
+
+    document.getElementById('btn-submit-rule').addEventListener('click',async function(){
+      var rule_type=document.getElementById('rule-type').value;
+      var star_min=parseInt(document.getElementById('rule-star-min').value);
+      var star_max=parseInt(document.getElementById('rule-star-max').value);
+      var reply_content=document.getElementById('rule-content').value.trim();
+      var is_enabled=document.getElementById('rule-enabled').checked;
+      if(!reply_content)return alert('请输入回复内容');
+      if(star_min>star_max)return alert('最低星级不能大于最高星级');
+      try{var url=editingRuleId?'/api/admin/auto-reply-rules/'+editingRuleId:'/api/admin/auto-reply-rules';var method=editingRuleId?'PUT':'POST';var res=await fetch(url,{method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify({rule_type,star_min,star_max,reply_content,is_enabled})});var data=await res.json();if(data.success){closeModal('ruleModal');loadRules();}else{alert(data.message||'保存失败');}}catch(e){alert('请求失败');}
+    });
+
+    async function toggleRule(id,enabled){
+      var rule=(await fetch('/api/admin/auto-reply-rules').then(function(r){return r.json();})).data.find(function(r){return r.id===id;});
+      if(!rule)return;
+      await fetch('/api/admin/auto-reply-rules/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({rule_type:rule.rule_type,star_min:rule.star_min,star_max:rule.star_max,reply_content:rule.reply_content,is_enabled:!!enabled})});
+      loadRules();
+    }
+
+    async function deleteRule(id){
+      if(!confirm('确定要删除这条规则吗？'))return;
+      try{await fetch('/api/admin/auto-reply-rules/'+id,{method:'DELETE'});loadRules();}catch(e){alert('删除失败');}
+    }
+
+    async function loadTemplates(){
+      try{var res=await fetch('/api/admin/reply-templates');var data=await res.json();if(data.success){templates=data.data;renderTemplates(data.data);}}catch(e){console.error(e);}
+    }
+
+    function renderTemplates(list){
+      var container=document.getElementById('template-list');
+      if(!list||list.length===0){container.innerHTML='<div class="state-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>暂无模板</div>';return;}
+      var html='';
+      list.forEach(function(t){
+        html+='<div class="item-card'+(t.is_default?' template-default':'')+'"><div><div class="item-title">'+t.name+' <span class="badge b-gray">'+t.category+'</span>'+(t.is_default?'<span class="badge b-green">默认</span>':'')+'</div><div class="item-body">'+t.content+'</div></div><div class="item-actions"><button class="btn-action" onclick="useTemplate('+t.id+')">使用</button><button class="btn-action" onclick="editTemplate('+t.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn-action" onclick="deleteTemplate('+t.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></div>';
+      });
+      container.innerHTML=html;
+    }
+
+    async function useTemplate(templateId){
+      var template=templates.find(function(t){return t.id===templateId;});
+      if(!template)return;
+      var checkboxes=document.querySelectorAll('.review-checkbox:checked');
+      if(checkboxes.length===0){alert('请先选择要回复的评价');return;}
+      var reviewIds=Array.from(checkboxes).map(function(cb){return cb.value;});
+      try{var res=await fetch('/api/admin/reviews/quick-reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_ids:reviewIds,template_id:templateId})});var data=await res.json();if(data.success){alert(data.message);loadReviews();loadStats();}else{alert(data.message||'回复失败');}}catch(e){alert('请求失败');}
+    }
+
+    function editTemplate(id){
+      var template=templates.find(function(t){return t.id===id;});
+      if(!template)return;
+      editingTemplateId=id;
+      document.getElementById('template-name').value=template.name;
+      document.getElementById('template-category').value=template.category;
+      document.getElementById('template-content').value=template.content;
+      document.getElementById('template-default').checked=template.is_default===1;
+      openModal('templateModal');
+    }
+
+    async function deleteTemplate(id){
+      if(!confirm('确定要删除这个模板吗？'))return;
+      try{await fetch('/api/admin/reply-templates/'+id,{method:'DELETE'});loadTemplates();}catch(e){alert('删除失败');}
+    }
+
+    document.getElementById('btn-submit-template').addEventListener('click',async function(){
+      var name=document.getElementById('template-name').value.trim();
+      var content=document.getElementById('template-content').value.trim();
+      var category=document.getElementById('template-category').value;
+      var is_default=document.getElementById('template-default').checked;
+      if(!name||!content)return alert('请填写模板名称和内容');
+      try{var url=editingTemplateId?'/api/admin/reply-templates/'+editingTemplateId:'/api/admin/reply-templates';var method=editingTemplateId?'PUT':'POST';var res=await fetch(url,{method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify({name,content,category,is_default})});var data=await res.json();if(data.success){closeModal('templateModal');editingTemplateId=null;loadTemplates();}else{alert(data.message||'保存失败');}}catch(e){alert('请求失败');}
+    });
+
+    document.getElementById('btn-refresh').addEventListener('click',function(){loadReviews();loadStats();});
+    document.getElementById('filter-status').addEventListener('change',loadReviews);
+    document.getElementById('filter-star').addEventListener('change',loadReviews);
+    document.getElementById('filter-start-date').addEventListener('change',loadReviews);
+    document.getElementById('filter-end-date').addEventListener('change',loadReviews);
+
+    document.querySelectorAll('#platformChips .chip').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        document.querySelectorAll('#platformChips .chip').forEach(function(b){b.classList.remove('active');});
+        this.classList.add('active');
+        currentPlatform=this.dataset.platform;
+        loadReviews();
+      });
+    });
+
+    document.getElementById('btn-export').addEventListener('click',function(){
+      var status=document.getElementById('filter-status').value;
+      var star=document.getElementById('filter-star').value;
+      var startDate=document.getElementById('filter-start-date').value;
+      var endDate=document.getElementById('filter-end-date').value;
+      var url='/api/admin/reviews/export?format=csv';
+      if(status)url+='&status='+encodeURIComponent(status);
+      if(star)url+='&star='+encodeURIComponent(star);
+      if(currentPlatform)url+='&platform='+encodeURIComponent(currentPlatform);
+      if(startDate)url+='&start_date='+encodeURIComponent(startDate);
+      if(endDate)url+='&end_date='+encodeURIComponent(endDate);
+
+      var xhr=new XMLHttpRequest();
+      xhr.open('GET',url,true);
+      var token=getAuthToken();
+      if(token)xhr.setRequestHeader('Authorization','Bearer '+token);
+      xhr.responseType='blob';
+      xhr.onload=function(){
+        if(xhr.status===401){handleUnauthorized();return;}
+        if(xhr.status>=400){
+          var reader=new FileReader();
+          reader.onload=function(){
+            try{var d=JSON.parse(reader.result);alert(d.message||'导出失败: HTTP '+xhr.status);}
+            catch(e2){alert('导出失败: HTTP '+xhr.status+'\n'+reader.result.substring(0,200));}
+          };
+          reader.readAsText(xhr.response);
+          return;
+        }
+        var ct=xhr.getResponseHeader('Content-Type')||'';
+        if(ct.indexOf('application/json')!==-1){
+          var reader2=new FileReader();
+          reader2.onload=function(){
+            try{var d=JSON.parse(reader2.result);alert(d.message||'导出失败');}
+            catch(e2){alert('导出失败: '+reader2.result.substring(0,200));}
+          };
+          reader2.readAsText(xhr.response);
+          return;
+        }
+        var blob=xhr.response;
+        if(!blob||blob.size===0){alert('导出失败: 返回数据为空');return;}
+        var filename='reviews_'+new Date().toISOString().slice(0,10)+'.csv';
+        var cd=xhr.getResponseHeader('Content-Disposition')||'';
+        var m=cd.match(/filename\*?=['"]?(?:UTF-8'')?([^;\n"']+)/i);
+        if(m&&m[1])filename=decodeURIComponent(m[1]);
+        var link=document.createElement('a');
+        link.href=URL.createObjectURL(blob);
+        link.download=filename;
+        link.click();
+        setTimeout(function(){URL.revokeObjectURL(link.href);},2000);
+        alert('导出成功，共 '+blob.size+' 字节');
+      };
+      xhr.onerror=function(){alert('导出失败: 网络错误，请检查网络连接');};
+      xhr.send();
+    });
+
+    // 主题切换
+    (function(){
+      var btn=document.getElementById('themeBtn');
+      function apply(t){if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');btn.textContent='浅色';}else{document.documentElement.removeAttribute('data-theme');btn.textContent='深色';}}
+      apply(localStorage.getItem('theme')||'light');
+      btn.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var next=cur==='dark'?'light':'dark';apply(next);localStorage.setItem('theme',next);});
+    })();
+
+    document.addEventListener('DOMContentLoaded',function(){
+      loadStats();
+      loadReviews();
+      loadRules();
+      loadTemplates();
+    });
+  </script>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var btn2=document.getElementById('themeBtn2');
+      if(btn2){
+        function applyTheme(t){if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');if(btn2)btn2.lastChild.textContent=' 浅色模式';}else{document.documentElement.removeAttribute('data-theme');if(btn2)btn2.lastChild.textContent=' 深色模式';}}
+        applyTheme(localStorage.getItem('theme')||'light');
+        btn2.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var next=cur==='dark'?'light':'dark';applyTheme(next);localStorage.setItem('theme',next);});
+      }
+    })();
+  </script>
+  <!-- 通知弹窗 -->
+  <div id="notifPanel" style="display:none;position:fixed;top:60px;right:24px;z-index:600;width:340px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);max-height:480px;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+      <span style="font-size:14px;font-weight:600;color:var(--text-1);">通知中心</span>
+      <button onclick="document.getElementById('notifPanel').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;line-height:1;">&times;</button>
+    </div>
+    <div id="notifList" style="padding:8px 0;"></div>
+  </div>
+
+  <script>
+  async function loadNotifications() {
+    try {
+      const res = await fetch('/api/admin/notifications?page_size=20');
+      const json = await res.json();
+      if (json.success && json.list) {
+        const badge = document.getElementById('notifBadge');
+        const countRes = await fetch('/api/admin/notifications/unread-count');
+        const countJson = await countRes.json();
+        if (countJson.count > 0) {
+          badge.textContent = countJson.count > 99 ? '99+' : countJson.count;
+          badge.style.display = 'block';
+        }
+        const panel = document.getElementById('notifList');
+        if (panel) {
+          if (json.list.length === 0) {
+            panel.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-4);font-size:13px;">暂无通知</div>';
+          } else {
+            panel.innerHTML = json.list.map(n => `<div style="padding:10px 16px;border-bottom:1px solid var(--border-soft);cursor:pointer;${n.is_read?'opacity:0.6':''}" onclick="markRead(${n.id},this)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;"><span style="font-size:13px;font-weight:${n.is_read?'400':'500'};color:var(--text-1);">${escapeHtml(n.title)}</span><span style="font-size:11px;color:var(--text-4);">${timeAgo(n.created_at)}</span></div><div style="font-size:12px;color:var(--text-3);">${escapeHtml(n.content||'')}</div></div>`).join('');
+          }
+        }
+      }
+    } catch(e) {}
+  }
+  async function markRead(id, el) {
+    try {
+      await fetch(`/api/admin/notifications/${id}/read`,{method:'POST'});
+      el.style.opacity='0.6';
+      const badge=document.getElementById('notifBadge');
+      const n=parseInt(badge.textContent)-1;
+      badge.textContent=n>0?n:0;
+      if(n<=0) badge.style.display='none';
+    } catch(e) {}
+  }
+  function showNotifs() {
+    const p=document.getElementById('notifPanel');
+    if(!p) return;
+    p.style.display=p.style.display==='none'?'block':'none';
+    if(p.style.display==='block') loadNotifications();
+  }
+  function escapeHtml(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+  function timeAgo(dt){if(!dt)return'';try{const d=new Date(dt.replace(' ','T'));const diff=Date.now()-d.getTime();if(diff<60000)return'刚刚';if(diff<3600000)return Math.floor(diff/60000)+'分钟前';if(diff<86400000)return Math.floor(diff/3600000)+'小时前';return Math.floor(diff/86400000)+'天前';}catch(e){return dt;}}
+  document.addEventListener('DOMContentLoaded',function(){loadNotifications();setInterval(loadNotifications,60000);});
+  document.addEventListener('click',function(e){const p=document.getElementById('notifPanel');const b=document.getElementById('notifBtn');if(p&&p.style.display==='block'&&!p.contains(e.target)&&(!b||!b.contains(e.target)))p.style.display='none';});
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# ============================================================
+# Chaos Experiment: buyer-service-down
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/buyer-service-down.yaml
+# 查看状态:
+#   kubectl get workflow buyer-service-down-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/buyer-service-down.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  experiment: buyer-service-down
+  expected_behavior:
+  - webhook 重试 3 次（指数退避）
+  - 所有重试失败后，记录错误日志
+  - 主流程不受影响
+spec:
+  action: pod-failure
+  mode: all
+  duration: 180s
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: ruitalk-buyer

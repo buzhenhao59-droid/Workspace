@@ -1,0 +1,32 @@
+# ============================================================
+# Chaos Experiment: mysql-connection-exhaustion
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/mysql-connection-exhaustion.yaml
+# 查看状态:
+#   kubectl get workflow mysql-connection-exhaustion-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/mysql-connection-exhaustion.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  experiment: mysql-connection-exhaustion
+  expected_behavior: MySQL CPU 100%，连接处理变慢
+spec:
+  mode: all
+  duration: 60s
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: mysql-seller
+  ' stressors':
+    cpu:
+      load: 100
+      workers: 8
+    memory:
+      size: 100%
+      workers: 1

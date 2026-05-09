@@ -1,0 +1,78 @@
+# ============================================================
+# 金牌客服系统 - .gitignore
+# ============================================================
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# ---- 虚拟环境 ----
+.venv/
+venv/
+ENV/
+env/
+
+# ---- 配置文件（敏感）----
+.env
+.env.local
+.env.production
+.env.*.local
+
+# ---- 数据库文件 ----
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+data/*.sqlite
+data/*.db-journal
+
+# ---- 日志文件 ----
+*.log
+logs/
+*.log.*
+
+# ---- 上传文件 ----
+data/uploads/
+uploads/
+data/attachments/
+*.upload
+
+# ---- IDE / 编辑器 ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- 测试报告 ----
+self_check_report_*.json
+*.trace
+
+# ---- 缓存 ----
+*.cache
+.cache/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ---- 第三方依赖 ----
+third_party/
+
+# ---- 临时文件 ----
+*.tmp
+*.temp
+tmp/
+temp/

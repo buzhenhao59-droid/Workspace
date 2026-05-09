@@ -1,0 +1,588 @@
+# ============================================================
+# Ruitalk 优化版 Docker Compose 配置（生产级）
+# 添加了：
+#   - 多阶段构建优化
+#   - 增强的资源限制
+#   - 健康检查优化
+#   - 性能调优参数
+#   - 自动重启策略
+# ============================================================
+
+services:
+  # ==================== MySQL 卖方库（优化版）====================
+  mysql-seller:
+    image: mysql:8.0
+    container_name: ruitalk-mysql-seller
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ruitalk_root_pass}
+      MYSQL_DATABASE: ruitalk
+      MYSQL_USER: ${MYSQL_USER:-ruitalk}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ruitalk_pass}
+      # 性能优化参数
+      MYSQL_SERVER_ID: 1
+      MYSQL_DEFAULT_AUTH_PLUGIN: caching_sha2_password
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=500
+      --max_allowed_packet=64M
+      --innodb_buffer_pool_size=512M
+      --innodb_log_file_size=128M
+      --innodb_flush_log_at_trx_commit=2
+      --innodb_flush_method=O_DIRECT
+      --slow_query_log=1
+      --slow_query_log_file=/var/log/mysql/slow.log
+      --long_query_time=2
+      --skip_name_resolve
+      --sql_mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE
+    volumes:
+      - mysql-seller-data:/var/lib/mysql
+      - mysql-seller-logs:/var/log/mysql
+      - ./docker/mysql/init-seller.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/seller.cnf:/etc/mysql/conf.d/seller.cnf:ro
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-ruitalk_root_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 4096
+        hard: 4096
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== MySQL 买方库（优化版）====================
+  mysql-buyer:
+    image: mysql:8.0
+    container_name: ruitalk-mysql-buyer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD_BUYER:-ruitalk_buyer_root_pass}
+      MYSQL_DATABASE: ruitalk_buyer
+      MYSQL_USER: ${MYSQL_USER_BUYER:-ruitalk_buyer}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD_BUYER:-ruitalk_buyer_pass}
+      MYSQL_SERVER_ID: 2
+      MYSQL_DEFAULT_AUTH_PLUGIN: caching_sha2_password
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=200
+      --max_allowed_packet=64M
+      --innodb_buffer_pool_size=256M
+      --innodb_log_file_size=64M
+      --innodb_flush_log_at_trx_commit=2
+      --slow_query_log=0
+      --skip_name_resolve
+    volumes:
+      - mysql-buyer-data:/var/lib/mysql
+      - ./docker/mysql/init-buyer.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/buyer.cnf:/etc/mysql/conf.d/buyer.cnf:ro
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD_BUYER:-ruitalk_buyer_root_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 4096
+        hard: 4096
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Redis（优化版）====================
+  redis:
+    image: redis:7-alpine
+    container_name: ruitalk-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --appendonly yes
+      --appendfsync everysec
+      --slowlog-log-slower-than 10000
+      --slowlog-max-len 128
+    volumes:
+      - redis-data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ==================== Neo4j 图数据库（优化版）====================
+  neo4j:
+    image: neo4j:5-community
+    container_name: ruitalk-neo4j
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-ruitalk_neo4j}
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512m
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_procedures_allowlist: apoc.*
+      # 性能优化
+      NEO4J_dbms_transaction_timeout: 30s
+      NEO4J_dbms_lock_acquisition_timeout: 10s
+      NEO4J_dbms.checkpoint_interval.time: 300
+      NEO4J_dbms.checkpoint_interval.tx: 100000
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p $${NEO4J_PASSWORD:-ruitalk_neo4j} 'RETURN 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 4096
+        hard: 4096
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== GraphRAG 代理（优化版）====================
+  graphrag:
+    build:
+      context: .
+      dockerfile: Dockerfile.graphrag
+    container_name: ruitalk-graphrag
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5050:5050"
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-ruitalk_neo4j}
+      GRAPHRAG_PROXY_PORT: 5050
+      GRAPHRAG_API_URL: http://graphrag:5050/query
+      # 性能配置
+      GRAPHRAG_MAX_WORKERS: 4
+      GRAPHRAG_TIMEOUT: 30
+    networks:
+      - ruitalk-net
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5050/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ==================== Prometheus 监控（优化版）====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ruitalk-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.enable-lifecycle'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--query.max-concurrency=10'
+      - '--query.timeout=2m'
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"
+        max-file: "5"
+
+  # ==================== Grafana 可视化（优化版）====================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ruitalk-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-ruitalk_grafana}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+      # 性能优化
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_FEATURE_TOGGLES_ENABLE: "live"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - ruitalk-net
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== 卖方终端（优化版）====================
+  seller:
+    build:
+      context: .
+      dockerfile: Dockerfile.seller
+      target: production
+    container_name: ruitalk-seller
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      MYSQL_HOST: mysql-seller
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk
+      MYSQL_USER: ${MYSQL_USER:-ruitalk}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ruitalk_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ruitalk_root_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-ruitalk_neo4j}
+      BUYER_API_HOST: http://buyer:8001
+      REDIS_USE_FAKE: "0"
+      # 性能配置
+      UVICORN_WORKERS: 2
+      UVICORN_BACKLOG: 2048
+      PYTHONOPTIMIZE: "1"
+    volumes:
+      - seller-data:/app/data
+      - seller-logs:/app/logs
+    networks:
+      - ruitalk-net
+    depends_on:
+      mysql-seller:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== 买方系统（优化版）====================
+  buyer:
+    build:
+      context: .
+      dockerfile: Dockerfile.buyer
+      target: production
+    container_name: ruitalk-buyer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8001"
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      MYSQL_HOST: mysql-buyer
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk_buyer
+      MYSQL_USER: ${MYSQL_USER_BUYER:-ruitalk_buyer}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD_BUYER:-ruitalk_buyer_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD_BUYER:-ruitalk_buyer_root_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SELLER_API_HOST: http://seller:8000
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-change_this_secret}
+      UVICORN_WORKERS: 2
+      PYTHONOPTIMIZE: "1"
+    volumes:
+      - buyer-data:/app/data
+    networks:
+      - ruitalk-net
+    depends_on:
+      mysql-buyer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Celery Worker（优化版）====================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.seller
+      target: production
+    container_name: ruitalk-celery-worker
+    restart: unless-stopped
+    command: celery -A celery_app worker --loglevel=info --concurrency=4 -Q default,ai_tasks,backup_tasks --max-tasks-per-child=1000 --time-limit=3600
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      MYSQL_HOST: mysql-seller
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk
+      MYSQL_USER: ${MYSQL_USER:-ruitalk}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ruitalk_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    volumes:
+      - seller-data:/app/data
+    networks:
+      - ruitalk-net
+    depends_on:
+      mysql-seller:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Celery Beat (定时任务) ====================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.seller
+      target: production
+    container_name: ruitalk-celery-beat
+    restart: unless-stopped
+    command: celery -A celery_app beat --loglevel=info --scheduler redbeat.RedBeatScheduler
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      MYSQL_HOST: mysql-seller
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk
+      MYSQL_USER: ${MYSQL_USER:-ruitalk}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ruitalk_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    volumes:
+      - seller-data:/app/data
+    networks:
+      - ruitalk-net
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ==================== 网络（优化版）====================
+networks:
+  ruitalk-net:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: ruitalk-br0
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+# ==================== 持久化卷（优化版）====================
+volumes:
+  mysql-seller-data:
+    driver: local
+  mysql-seller-logs:
+    driver: local
+  mysql-buyer-data:
+    driver: local
+  redis-data:
+    driver: local
+  neo4j-data:
+    driver: local
+  neo4j-logs:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  seller-data:
+    driver: local
+  seller-logs:
+    driver: local
+  buyer-data:
+    driver: local

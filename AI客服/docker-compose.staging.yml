@@ -1,0 +1,495 @@
+# ============================================================
+# Ruitalk Staging 环境部署配置
+# 基于 docker-compose.yml，添加 staging 特定配置
+#
+# 端口绑定：仅本地访问，外网通过 nginx 反向代理
+# 日志：json-file driver + 轮转（与基础版一致）
+# ulimits：所有数据库服务配置文件描述符限制
+#
+# 使用方法：
+#   docker-compose -f docker-compose.staging.yml up -d
+#   docker-compose -f docker-compose.staging.yml logs -f
+#   docker-compose -f docker-compose.staging.yml down
+# ============================================================
+
+version: "3.9"
+
+services:
+  # ==================== MySQL 卖方库 ====================
+  mysql-seller:
+    image: mysql:8.0
+    container_name: ruitalk-staging-mysql-seller
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-staging_root_pass}
+      MYSQL_DATABASE: ruitalk_staging
+      MYSQL_USER: ${MYSQL_USER:-ruitalk_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-staging_pass}
+    volumes:
+      - mysql-seller-data:/var/lib/mysql
+      - ./docker/mysql/init-seller.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/seller.cnf:/etc/mysql/conf.d/seller.cnf:ro
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-staging_root_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 4096
+        hard: 4096
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== MySQL 买方库 ====================
+  mysql-buyer:
+    image: mysql:8.0
+    container_name: ruitalk-staging-mysql-buyer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD_BUYER:-staging_buyer_root_pass}
+      MYSQL_DATABASE: ruitalk_buyer_staging
+      MYSQL_USER: ${MYSQL_USER_BUYER:-ruitalk_buyer_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD_BUYER:-staging_buyer_pass}
+    volumes:
+      - mysql-buyer-data:/var/lib/mysql
+      - ./docker/mysql/init-buyer.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/buyer.cnf:/etc/mysql/conf.d/buyer.cnf:ro
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD_BUYER:-staging_buyer_root_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 4096
+        hard: 4096
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Redis ====================
+  redis:
+    image: redis:7-alpine
+    container_name: ruitalk-staging-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        reservations:
+          memory: 256M
+        limits:
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ==================== Neo4j 图数据库 ====================
+  neo4j:
+    image: neo4j:5-community
+    container_name: ruitalk-staging-neo4j
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-staging_neo4j}
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512m
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_procedures_allowlist: apoc.*
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p $${NEO4J_PASSWORD:-staging_neo4j} 'RETURN 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 4096
+        hard: 4096
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Prometheus 监控 ====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ruitalk-staging-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    networks:
+      - ruitalk-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"
+        max-file: "5"
+
+  # ==================== Grafana 可视化 ====================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ruitalk-staging-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-staging_grafana}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - ruitalk-net
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== 卖方终端 ====================
+  seller:
+    build:
+      context: .
+      dockerfile: Dockerfile.seller
+      target: production
+      args:
+        - ENVIRONMENT=staging
+    image: ${DOCKER_REGISTRY:-ruitalk}/seller:staging
+    container_name: ruitalk-staging-seller
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env.staging
+    environment:
+      ENVIRONMENT: staging
+      ENVIRONMENT_NAME: staging
+      MYSQL_HOST: mysql-seller
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk_staging
+      MYSQL_USER: ${MYSQL_USER:-ruitalk_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-staging_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-staging_root_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-staging_neo4j}
+      BUYER_API_HOST: http://buyer:8001
+      REDIS_USE_FAKE: "0"
+      SENTRY_DSN: ${SENTRY_DSN_STAGING:-}
+      LOG_LEVEL: INFO
+    volumes:
+      - seller-data:/app/data
+      - seller-logs:/app/logs
+    networks:
+      - ruitalk-net
+    depends_on:
+      mysql-seller:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== 买方系统 ====================
+  buyer:
+    build:
+      context: .
+      dockerfile: Dockerfile.buyer
+      target: production
+      args:
+        - ENVIRONMENT=staging
+    image: ${DOCKER_REGISTRY:-ruitalk}/buyer:staging
+    container_name: ruitalk-staging-buyer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8001"
+    env_file:
+      - .env.staging
+    environment:
+      ENVIRONMENT: staging
+      ENVIRONMENT_NAME: staging
+      MYSQL_HOST: mysql-buyer
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk_buyer_staging
+      MYSQL_USER: ${MYSQL_USER_BUYER:-ruitalk_buyer_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD_BUYER:-staging_buyer_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD_BUYER:-staging_buyer_root_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SELLER_API_HOST: http://seller:8000
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-staging_secret}
+      SENTRY_DSN: ${SENTRY_DSN_STAGING:-}
+      LOG_LEVEL: INFO
+    volumes:
+      - buyer-data:/app/data
+    networks:
+      - ruitalk-net
+    depends_on:
+      mysql-buyer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Celery Worker ====================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.seller
+      target: production
+    image: ${DOCKER_REGISTRY:-ruitalk}/seller:staging
+    container_name: ruitalk-staging-celery-worker
+    restart: unless-stopped
+    command: celery -A celery_app worker --loglevel=info --concurrency=4 -Q default,ai_tasks,backup_tasks
+    env_file:
+      - .env.staging
+    environment:
+      ENVIRONMENT: staging
+      MYSQL_HOST: mysql-seller
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk_staging
+      MYSQL_USER: ${MYSQL_USER:-ruitalk_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-staging_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    volumes:
+      - seller-data:/app/data
+    networks:
+      - ruitalk-net
+    depends_on:
+      mysql-seller:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ==================== Celery Beat (定时任务) ====================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.seller
+      target: production
+    image: ${DOCKER_REGISTRY:-ruitalk}/seller:staging
+    container_name: ruitalk-staging-celery-beat
+    restart: unless-stopped
+    command: celery -A celery_app beat --loglevel=info
+    env_file:
+      - .env.staging
+    environment:
+      ENVIRONMENT: staging
+      MYSQL_HOST: mysql-seller
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ruitalk_staging
+      MYSQL_USER: ${MYSQL_USER:-ruitalk_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-staging_pass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    volumes:
+      - seller-data:/app/data
+    networks:
+      - ruitalk-net
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 256M
+        limits:
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ==================== 网络 ====================
+networks:
+  ruitalk-net:
+    driver: bridge
+
+# ==================== 持久化卷 ====================
+volumes:
+  mysql-seller-data:
+    driver: local
+  mysql-buyer-data:
+    driver: local
+  redis-data:
+    driver: local
+  neo4j-data:
+    driver: local
+  neo4j-logs:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  seller-data:
+    driver: local
+  seller-logs:
+    driver: local
+  buyer-data:
+    driver: local

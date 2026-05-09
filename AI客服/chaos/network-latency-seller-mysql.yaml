@@ -1,0 +1,38 @@
+# ============================================================
+# Chaos Experiment: network-latency-seller-mysql
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/network-latency-seller-mysql.yaml
+# 查看状态:
+#   kubectl get workflow network-latency-seller-mysql-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/network-latency-seller-mysql.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  experiment: network-latency
+  target: seller → MySQL
+  injected_delay: 500ms
+spec:
+  action: delay
+  mode: all
+  duration: 60s
+  delay:
+    latency: 500ms
+    correlation: '0'
+    jitter: 50ms
+  direction: to
+  target:
+    selector:
+      namespaces:
+      - ruitalk
+      labelSelectors:
+        app: mysql-seller
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: ruitalk-seller

@@ -1,0 +1,28 @@
+# ============================================================
+# Chaos Experiment: mysql-disk-io-delay
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/mysql-disk-io-delay.yaml
+# 查看状态:
+#   kubectl get workflow mysql-disk-io-delay-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/mysql-disk-io-delay.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: IOChaos
+metadata:
+  experiment: mysql-disk-io-delay
+  injected_delay: 50ms
+spec:
+  action: delay
+  mode: all
+  duration: 60s
+  delay: 50ms
+  path: /var/lib/mysql
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: mysql-seller

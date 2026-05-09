@@ -1,0 +1,49 @@
+# Prometheus 配置文件
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ruitalk'
+    env: '${ENVIRONMENT:-staging}'
+
+alerting:
+  alertmanagers: []
+
+rule_files: []
+
+scrape_configs:
+  # Prometheus 自身
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 卖方终端
+  - job_name: 'ruitalk-seller'
+    static_configs:
+      - targets: ['seller:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # 买方系统
+  - job_name: 'ruitalk-buyer'
+    static_configs:
+      - targets: ['buyer:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # MySQL（需要 mysqld_exporter）
+  - job_name: 'mysql-seller'
+    static_configs:
+      - targets: ['mysql-seller:9104']
+    scrape_interval: 60s
+
+  # Celery（需要 celery_exporter）
+  - job_name: 'celery'
+    static_configs:
+      - targets: ['celery-worker:9808']
+    scrape_interval: 60s

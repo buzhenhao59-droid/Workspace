@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <title>正在跳转…</title>
+    <script>
+      (function () {
+        var target = "/admin/message-center";
+        if (location.protocol === "file:") {
+          target = "http://127.0.0.1:8000" + target;
+        }
+        location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>正在进入消息中心…若未跳转，请 <a id="openLink" href="#">点此打开</a>。</p>
+    <script>
+      document.getElementById("openLink").href = location.protocol === "file:"
+        ? "http://127.0.0.1:8000/admin/message-center"
+        : "/admin/message-center";
+    </script>
+  </body>
+</html>

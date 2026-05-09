@@ -1,0 +1,123 @@
+# ============================================================
+# Ruitalk 卖方终端 Dockerfile
+# 基于 Python 3.11 slim + 多阶段构建
+#
+# 构建: docker build -f Dockerfile.seller -t ruitalk/seller:latest .
+# 运行: docker run -d -p 8000:8000 --env-file .env ruitalk/seller:latest
+# ============================================================
+FROM python:3.11-slim AS base
+
+# 防止 Python 缓冲输出（配合 Docker 日志）
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# 安装系统依赖（XML/JSON 处理、编译工具）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    ca-certificates \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# ============================================================
+# 阶段1：安装依赖（复用层，加速重建）
+# ============================================================
+FROM base AS deps
+
+# 先复制 requirements.txt（利用 Docker 缓存层）
+COPY 卖方终端/requirements.txt /tmp/requirements.txt
+
+# 过滤掉 Windows 专用包
+RUN grep -v -E "^(uvloop|websockets|pywin32|wmi|systemd)" /tmp/requirements.txt \
+    > /tmp/requirements_filtered.txt || true
+
+RUN pip install --no-cache-dir -r /tmp/requirements_filtered.txt
+
+# ============================================================
+# 阶段2：构建应用
+# ============================================================
+FROM base AS builder
+
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+WORKDIR /app
+
+# 复制源代码
+COPY 卖方终端/backend/ /app/
+COPY 卖方终端/frontend/ /app/frontend/
+COPY 卖方终端/data/ /app/data/ 2>/dev/null || true
+
+# 清理不需要的文件
+RUN find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find /app -name "*.pyc" -delete 2>/dev/null || true
+
+# ============================================================
+# 阶段3：生产镜像（最小化）
+# ============================================================
+FROM base AS production
+
+# 创建非 root 用户（安全加固）
+RUN groupadd --gid 1000 ruitalk && \
+    useradd --uid 1000 --gid ruitalk --shell /bin/bash --create-home ruitalk
+
+WORKDIR /app
+
+# 从 builder 复制已安装的包
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
+
+# 创建必要目录
+RUN mkdir -p /app/data /app/logs && \
+    chown -R ruitalk:ruitalk /app
+
+USER ruitalk
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -sf http://localhost:8000/health || exit 1
+
+# 暴露端口
+EXPOSE 8000
+
+# 环境变量（生产默认值）
+ENV FASTAPI_PORT=8000
+ENV ENVIRONMENT=production
+ENV UVICORN_WORKERS=2
+
+# 启动命令
+# 使用 uvicorn 多 worker 模式（gunicorn 兼容）
+CMD ["python", "-m", "uvicorn", "main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "2", \
+     "--log-level", "info"]
+
+# ============================================================
+# 阶段4：开发镜像（带热重载）
+# ============================================================
+FROM base AS development
+
+WORKDIR /app
+
+# 从 deps 复制依赖
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+COPY 卖方终端/backend/ /app/
+COPY 卖方终端/frontend/ /app/frontend/
+
+USER root
+RUN apt-get update && apt-get install -y vim less && rm -rf /var/lib/apt/lists/*
+USER root
+
+EXPOSE 8000
+
+# 开发模式：单进程 + 热重载
+CMD ["python", "-m", "uvicorn", "main:app", \
+     "--host", "0.0.0.0", "--port", "8000", \
+     "--reload", "--reload-dir", "/app/backend"]

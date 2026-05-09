@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 - Ruitalk</title>
+  <style>
+    /* ========== Reset ========== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #6366f1;
+      --brand-dark: #4f46e5;
+      --brand-light: #818cf8;
+      --brand-glow: rgba(99,102,241,0.25);
+      --bg-dark: #0b0d14;
+      --bg-card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.15);
+      --border-focus: rgba(99,102,241,0.7);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #475569;
+      --error: #f43f5e;
+      --error-bg: rgba(244,63,94,0.08);
+      --success: #10b981;
+      --radius: 14px;
+      --t: 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ========== 背景 ========== */
+    .bg-orb {
+      position: fixed;
+      top: -180px; left: 50%; transform: translateX(-50%);
+      width: 550px; height: 550px;
+      background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+    .bg-orb2 {
+      position: fixed; bottom: -120px; right: -120px;
+      width: 380px; height: 380px;
+      background: radial-gradient(circle, rgba(129,140,248,0.08) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ========== 容器 ========== */
+    .wrap {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 420px;
+    }
+
+    /* ========== Logo ========== */
+    .logo-area {
+      text-align: center; margin-bottom: 28px;
+      animation: fadeDn 0.5s ease both;
+    }
+    .logo-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 60px; height: 60px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      box-shadow: 0 8px 32px var(--brand-glow), 0 0 0 1px rgba(255,255,255,0.05) inset;
+      margin-bottom: 14px;
+    }
+    .logo-icon svg { width: 30px; height: 30px; color: #fff; }
+    .logo-title {
+      font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* ========== 卡片 ========== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(24px);
+      padding: 28px;
+      animation: fadeUp 0.5s ease 0.1s both;
+    }
+    .card:focus-within {
+      border-color: var(--border-hover);
+      box-shadow: 0 0 0 1px rgba(99,102,241,0.15), 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    /* ========== 主模式切换（登录/注册） ========== */
+    .main-tabs {
+      display: flex; background: rgba(255,255,255,0.03);
+      border-radius: 10px; padding: 4px; margin-bottom: 20px; gap: 4px;
+    }
+    .main-tab {
+      flex: 1; padding: 9px;
+      border: none; border-radius: 8px;
+      background: transparent; color: var(--text-secondary);
+      font-size: 0.9rem; font-weight: 500; cursor: pointer;
+      transition: all var(--t); text-align: center;
+    }
+    .main-tab:hover { color: var(--text-primary); }
+    .main-tab.active {
+      background: var(--brand); color: #fff;
+      box-shadow: 0 2px 12px var(--brand-glow);
+    }
+
+    /* ========== 次级切换（手机号/邮箱）+ 切换链接 ========== */
+    .sub-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .sub-tabs {
+      display: flex; gap: 16px;
+    }
+    .sub-tab {
+      background: none; border: none;
+      color: var(--text-muted); font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; padding: 0 0 4px;
+      border-bottom: 2px solid transparent;
+      transition: all var(--t); letter-spacing: 0.01em;
+    }
+    .sub-tab:hover { color: var(--text-secondary); }
+    .sub-tab.active { color: var(--brand-light); border-bottom-color: var(--brand); }
+    .switch-link {
+      font-size: 0.8rem; color: var(--text-muted); text-decoration: none;
+      transition: color var(--t); cursor: pointer;
+    }
+    .switch-link:hover { color: var(--brand-light); }
+
+    /* ========== 表单面板 ========== */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.22s ease; }
+
+    /* ========== 字段 ========== */
+    .field { margin-bottom: 14px; }
+    .label {
+      display: block; font-size: 0.78rem; font-weight: 500;
+      color: var(--text-secondary); margin-bottom: 7px; letter-spacing: 0.01em;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); width: 17px; height: 17px;
+      pointer-events: none; transition: color var(--t);
+    }
+    .input {
+      width: 100%; padding: 11px 13px 11px 42px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-primary);
+      font-size: 0.93rem; outline: none;
+      transition: border-color var(--t), box-shadow var(--t), background var(--t);
+      caret-color: var(--brand);
+    }
+    .input::placeholder { color: var(--text-muted); }
+    .input:hover { border-color: var(--border-hover); }
+    .input:focus {
+      border-color: var(--border-focus);
+      background: rgba(99,102,241,0.05);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+    .input:focus ~ .input-icon,
+    .input-wrap:focus-within .input-icon { color: var(--brand-light); }
+    .input.error { border-color: var(--error) !important; }
+    .input.error:focus { box-shadow: 0 0 0 3px rgba(244,63,94,0.15); }
+
+    /* ========== 验证码行 ========== */
+    .sms-row { display: flex; gap: 10px; align-items: flex-start; }
+    .sms-row .field { flex: 1; margin-bottom: 0; }
+    .sms-row .input { padding-left: 42px; }
+
+    .btn-sms {
+      flex-shrink: 0; height: 46px; padding: 0 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      color: var(--brand-light); font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: all var(--t); min-width: 96px;
+    }
+    .btn-sms:hover:not(:disabled) { background: rgba(99,102,241,0.1); border-color: var(--brand); }
+    .btn-sms:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-sms.counting { color: var(--text-muted); }
+
+    /* ========== 密码切换 ========== */
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      padding: 4px; display: flex; transition: color var(--t);
+    }
+    .pw-toggle:hover { color: var(--text-secondary); }
+    .pw-toggle svg { width: 17px; height: 17px; }
+
+    /* ========== 错误提示 ========== */
+    .field-err {
+      display: none; font-size: 0.76rem; color: var(--error);
+      margin-top: 5px; padding-left: 2px;
+      align-items: center; gap: 4px;
+    }
+    .field-err.visible { display: flex; }
+    .field-err svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* ========== 提交按钮 ========== */
+    .btn-submit {
+      width: 100%; height: 48px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color: #fff; font-size: 0.97rem; font-weight: 600; cursor: pointer;
+      margin-top: 6px; display: flex; align-items: center; justify-content: center;
+      gap: 8px; transition: all var(--t);
+      box-shadow: 0 4px 20px var(--brand-glow); letter-spacing: 0.01em;
+    }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 28px var(--brand-glow); }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+
+    /* ========== Toast ========== */
+    .toast {
+      position: fixed; top: 24px; left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: var(--error); color: #fff;
+      padding: 11px 22px; border-radius: 10px;
+      font-size: 0.88rem; font-weight: 500; z-index: 9999;
+      opacity: 0; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3); pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.ok { background: var(--success); }
+    .toast svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* ========== 页脚 ========== */
+    .footer { text-align: center; margin-top: 20px; font-size: 0.76rem; color: var(--text-muted); animation: fadeUp 0.5s ease 0.2s both; }
+
+    /* ========== Anim ========== */
+    @keyframes fadeDn { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ========== 响应式 ========== */
+    @media (max-width: 460px) {
+      body { padding: 14px 12px; }
+      .card { padding: 22px 18px; border-radius: 16px; }
+      .logo-icon { width: 54px; height: 54px; }
+      .logo-icon svg { width: 26px; height: 26px; }
+      .logo-title { font-size: 1.45rem; }
+      .sms-row { flex-direction: column; gap: 14px; }
+      .sms-row .field { width: 100%; }
+      .btn-sms { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-orb"></div>
+<div class="bg-orb2"></div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="alert">
+  <svg id="toastIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <span id="toastMsg">提示</span>
+</div>
+
+<div class="wrap">
+
+  <!-- Logo -->
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <polyline points="9 12 11 14 15 10"/>
+      </svg>
+    </div>
+    <h1 class="logo-title">Ruitalk</h1>
+    <p class="logo-sub">卖方智能客服终端</p>
+  </div>
+
+  <!-- 卡片 -->
+  <div class="card">
+
+    <!-- 主模式切换：登录 / 注册 -->
+    <div class="main-tabs" role="tablist" id="mainTabs">
+      <button class="main-tab active" data-mode="login" role="tab">登录</button>
+      <button class="main-tab" data-mode="register" role="tab">注册</button>
+    </div>
+
+    <!-- ==================== 手机号面板 ==================== -->
+    <div class="panel active" id="panelPhone" role="tabpanel">
+
+      <!-- 次级切换 + 模式切换链接 -->
+      <div class="sub-row">
+        <div class="sub-tabs">
+          <button class="sub-tab active" data-type="phone">手机号</button>
+          <button class="sub-tab" data-type="email">邮箱</button>
+        </div>
+        <span class="switch-link" id="phoneSwitchLink">使用邮箱登录 →</span>
+      </div>
+
+      <!-- 登录：手机号 + 验证码 -->
+      <div id="phoneLoginForm">
+        <div class="field">
+          <label class="label">手机号</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <input type="tel" id="phoneLoginPhone" class="input" placeholder="请输入手机号" maxlength="11" autocomplete="tel" inputmode="numeric">
+          </div>
+          <div class="field-err" id="phoneLoginPhoneErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <div class="field">
+          <label class="label">短信验证码</label>
+          <div class="sms-row">
+            <div class="field" style="margin-bottom:0">
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
+                <input type="text" id="phoneLoginCode" class="input" placeholder="6位验证码" maxlength="6" autocomplete="one-time-code" inputmode="numeric">
+              </div>
+              <div class="field-err" id="phoneLoginCodeErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+            </div>
+            <button type="button" class="btn-sms" id="phoneLoginSmsBtn">获取验证码</button>
+          </div>
+        </div>
+        <button type="button" class="btn-submit" id="phoneLoginBtn"><span id="phoneLoginBtnText">登 录</span></button>
+      </div>
+
+      <!-- 注册：手机号 + 验证码 + 密码 + 昵称 -->
+      <div id="phoneRegForm" style="display:none">
+        <div class="field">
+          <label class="label">手机号</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <input type="tel" id="phoneRegPhone" class="input" placeholder="请输入手机号" maxlength="11" autocomplete="tel" inputmode="numeric">
+          </div>
+          <div class="field-err" id="phoneRegPhoneErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <div class="field">
+          <label class="label">短信验证码</label>
+          <div class="sms-row">
+            <div class="field" style="margin-bottom:0">
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
+                <input type="text" id="phoneRegCode" class="input" placeholder="6位验证码" maxlength="6" autocomplete="one-time-code" inputmode="numeric">
+              </div>
+              <div class="field-err" id="phoneRegCodeErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+            </div>
+            <button type="button" class="btn-sms" id="phoneRegSmsBtn">获取验证码</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">设置密码</label>
+          <div class="pw-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="phoneRegPw" class="input" placeholder="6位以上密码" autocomplete="new-password" style="padding-right:48px">
+            <button type="button" class="pw-toggle" id="phoneRegPwToggle">
+              <svg id="phoneRegEye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="phoneRegEyeOff" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <div class="field-err" id="phoneRegPwErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <div class="field">
+          <label class="label">昵称 <span style="color:var(--text-muted);font-weight:400">(选填)</span></label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="phoneRegNick" class="input" placeholder="怎么称呼你" autocomplete="nickname">
+          </div>
+          <div class="field-err" id="phoneRegNickErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <button type="button" class="btn-submit" id="phoneRegBtn"><span id="phoneRegBtnText">注 册</span></button>
+      </div>
+
+    </div>
+
+    <!-- ==================== 邮箱面板 ==================== -->
+    <div class="panel" id="panelEmail" role="tabpanel">
+
+      <div class="sub-row">
+        <div class="sub-tabs">
+          <button class="sub-tab" data-type="phone">手机号</button>
+          <button class="sub-tab active" data-type="email">邮箱</button>
+        </div>
+        <span class="switch-link" id="emailSwitchLink">使用手机号登录 →</span>
+      </div>
+
+      <!-- 登录：邮箱 + 密码 -->
+      <div id="emailLoginForm">
+        <div class="field">
+          <label class="label">邮箱</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input type="email" id="emailLoginAddr" class="input" placeholder="example@domain.com" autocomplete="email">
+          </div>
+          <div class="field-err" id="emailLoginAddrErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <div class="field">
+          <label class="label">密码</label>
+          <div class="pw-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="emailLoginPw" class="input" placeholder="请输入密码" autocomplete="current-password" style="padding-right:48px">
+            <button type="button" class="pw-toggle" id="emailLoginPwToggle">
+              <svg id="emailLoginEye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="emailLoginEyeOff" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <div class="field-err" id="emailLoginPwErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <button type="button" class="btn-submit" id="emailLoginBtn"><span id="emailLoginBtnText">登 录</span></button>
+      </div>
+
+      <!-- 注册：邮箱 + 邮箱验证码 + 密码 + 昵称 -->
+      <div id="emailRegForm" style="display:none">
+        <div class="field">
+          <label class="label">邮箱</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input type="email" id="emailRegAddr" class="input" placeholder="example@domain.com" autocomplete="email">
+          </div>
+          <div class="field-err" id="emailRegAddrErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <div class="field">
+          <label class="label">邮箱验证码</label>
+          <div class="sms-row">
+            <div class="field" style="margin-bottom:0">
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
+                <input type="text" id="emailRegCode" class="input" placeholder="6位验证码" maxlength="6" autocomplete="one-time-code" inputmode="numeric">
+              </div>
+              <div class="field-err" id="emailRegCodeErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+            </div>
+            <button type="button" class="btn-sms" id="emailRegSmsBtn">获取验证码</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">设置密码</label>
+          <div class="pw-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="emailRegPw" class="input" placeholder="6位以上密码" autocomplete="new-password" style="padding-right:48px">
+            <button type="button" class="pw-toggle" id="emailRegPwToggle">
+              <svg id="emailRegEye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="emailRegEyeOff" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <div class="field-err" id="emailRegPwErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <div class="field">
+          <label class="label">昵称 <span style="color:var(--text-muted);font-weight:400">(选填)</span></label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="emailRegNick" class="input" placeholder="怎么称呼你" autocomplete="nickname">
+          </div>
+          <div class="field-err" id="emailRegNickErr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span></span></div>
+        </div>
+        <button type="button" class="btn-submit" id="emailRegBtn"><span id="emailRegBtnText">注 册</span></button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <p class="footer">© 2026 Ruitalk · 安全加密连接</p>
+
+</div>
+
+<script>
+// ================================================================
+//  配置
+// ================================================================
+const API = 'http://localhost:5000/api';
+const PHONE_REG = /^1[3-9]\d{9}$/;
+const EMAIL_REG = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const CODE_REG  = /^\d{6}$/;
+
+// ================================================================
+//  Toast
+// ================================================================
+let toastTimer = null;
+function showToast(msg, type = 'err') {
+  const t = document.getElementById('toast'), m = document.getElementById('toastMsg'), ic = document.getElementById('toastIcon');
+  m.textContent = msg;
+  t.className = 'toast' + (type === 'ok' ? ' ok' : '');
+  if (type === 'ok') {
+    ic.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+  } else {
+    ic.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+  }
+  clearTimeout(toastTimer);
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ================================================================
+//  工具
+// ================================================================
+const $ = id => document.getElementById(id);
+
+function setLoading(btn, textEl, on) {
+  if (on) {
+    btn.disabled = true;
+    textEl.innerHTML = '<div class="spinner"></div>处理中…';
+  } else {
+    btn.disabled = false;
+    textEl.textContent = btn.dataset.originalText || '提交';
+  }
+}
+
+function showErr(el, msg) {
+  const field = el.closest('.field');
+  const errEl = field?.querySelector('.field-err');
+  if (errEl) { errEl.querySelector('span').textContent = msg; errEl.classList.add('visible'); }
+  el.classList.add('error');
+}
+
+function clearErr(el) {
+  const field = el.closest('.field');
+  const errEl = field?.querySelector('.field-err');
+  if (errEl) errEl.classList.remove('visible');
+  el.classList.remove('error');
+}
+
+function clearAllErrs() {
+  document.querySelectorAll('.input, .field-err').forEach(el => {
+    if (el.classList.contains('input')) clearErr(el);
+    else if (el.classList.contains('field-err')) el.classList.remove('visible');
+  });
+}
+
+function lockBtn(btn, textEl, originalText, sec) {
+  btn.disabled = true;
+  btn.classList.add('counting');
+  let left = sec;
+  const tick = () => {
+    left--;
+    if (left <= 0) {
+      btn.textContent = '获取验证码';
+      btn.disabled = false;
+      btn.classList.remove('counting');
+    } else {
+      btn.textContent = `${left}秒后可重发`;
+      setTimeout(tick, 1000);
+    }
+  };
+  tick();
+}
+
+async function apiCall(url, body) {
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return resp.json();
+}
+
+// ================================================================
+//  主模式切换（登录 / 注册）
+// ================================================================
+let currentMode = 'login'; // 'login' | 'register'
+let currentType = 'phone'; // 'phone' | 'email'
+
+function applyMode() {
+  // 切换登录/注册
+  $('mainTabs').querySelectorAll('.main-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === currentMode);
+  });
+
+  // 子面板
+  const isPhone = currentType === 'phone';
+  $('panelPhone').classList.toggle('active', isPhone);
+  $('panelEmail').classList.toggle('active', !isPhone);
+
+  // 次级 tab 高亮
+  document.querySelectorAll('.sub-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === currentType);
+  });
+
+  // 切换链接文字
+  if (isPhone) {
+    $('phoneSwitchLink').textContent = currentMode === 'login' ? '使用邮箱登录 →' : '使用邮箱注册 →';
+  } else {
+    $('emailSwitchLink').textContent = currentMode === 'login' ? '使用手机号登录 →' : '使用手机号注册 →';
+  }
+
+  // 切换登录表单 / 注册表单
+  $('phoneLoginForm').style.display  = (currentType === 'phone' && currentMode === 'login')  ? 'block' : 'none';
+  $('phoneRegForm').style.display    = (currentType === 'phone' && currentMode === 'register') ? 'block' : 'none';
+  $('emailLoginForm').style.display = (currentType === 'email' && currentMode === 'login') ? 'block' : 'none';
+  $('emailRegForm').style.display   = (currentType === 'email' && currentMode === 'register') ? 'block' : 'none';
+
+  // 提交按钮文字
+  $('phoneLoginBtn').dataset.originalText = '登 录';
+  $('phoneRegBtn').dataset.originalText   = '注 册';
+  $('emailLoginBtn').dataset.originalText = '登 录';
+  $('emailRegBtn').dataset.originalText   = '注 册';
+
+  clearAllErrs();
+}
+
+// 主 tab 点击
+$('mainTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.main-tab');
+  if (!btn || btn.dataset.mode === currentMode) return;
+  currentMode = btn.dataset.mode;
+  applyMode();
+});
+
+// 次级 tab 点击（手机号/邮箱）
+document.querySelectorAll('.sub-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.type === currentType) return;
+    currentType = btn.dataset.type;
+    applyMode();
+  });
+});
+
+// 切换链接
+$('phoneSwitchLink').addEventListener('click', () => {
+  currentType = 'email';
+  currentMode = currentMode === 'login' ? 'register' : 'login';
+  applyMode();
+});
+$('emailSwitchLink').addEventListener('click', () => {
+  currentType = 'phone';
+  currentMode = currentMode === 'login' ? 'register' : 'login';
+  applyMode();
+});
+
+// ================================================================
+//  密码可见性
+// ================================================================
+function setupPwToggle(pwId, eyeId, eyeOffId) {
+  const pw = $(pwId), eye = $(eyeId), eyeOff = $(eyeOffId);
+  if (!pw || !eye) return;
+  $(pwId + 'Toggle')?.addEventListener('click', () => {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    eye.style.display   = show ? 'none'   : 'block';
+    eyeOff.style.display = show ? 'block' : 'none';
+  });
+}
+setupPwToggle('phoneRegPw',  'phoneRegEye',  'phoneRegEyeOff');
+setupPwToggle('emailLoginPw','emailLoginEye','emailLoginEyeOff');
+setupPwToggle('emailRegPw',  'emailRegEye',  'emailRegEyeOff');
+
+// ================================================================
+//  输入过滤：手机号/验证码框只允许数字
+// ================================================================
+['phoneLoginPhone','phoneRegPhone','phoneLoginCode','phoneRegCode','emailRegCode'].forEach(id => {
+  const el = $(id);
+  if (!el) return;
+  const max = id.includes('Phone') ? 11 : 6;
+  el.addEventListener('input', () => {
+    el.value = el.value.replace(/\D/g, '').slice(0, max);
+    clearErr(el);
+  });
+});
+
+// 邮箱/密码框清除错误
+['emailLoginAddr','emailLoginPw','emailRegAddr','emailRegPw','emailRegNick','phoneRegNick'].forEach(id => {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('input', () => clearErr(el));
+});
+
+// ================================================================
+//  发送短信验证码（手机号登录/注册）
+// ================================================================
+async function sendPhoneCode(phoneFieldId, smsFieldId, action) {
+  const phone = $(phoneFieldId).value.trim();
+  clearErr($(phoneFieldId));
+  if (!phone)                          { showErr($(phoneFieldId), '请输入手机号'); return; }
+  if (!PHONE_REG.test(phone))          { showErr($(phoneFieldId), '手机号格式不正确'); return; }
+
+  const btnId = phoneFieldId === 'phoneLoginPhone' ? 'phoneLoginSmsBtn' : 'phoneRegSmsBtn';
+  const btn = $(btnId);
+  btn.disabled = true;
+
+  try {
+    const data = await apiCall(`${API}/send_sms_code`, { phone, action });
+    if (data.success) {
+      lockBtn(btn, null, null, 60);
+      // 演示模式显示验证码
+      if (data.data?.debug_code) {
+        showToast(`演示验证码：${data.data.debug_code}`, 'ok');
+      } else {
+        showToast('验证码已发送', 'ok');
+      }
+      // 自动聚焦验证码框
+      setTimeout(() => $(smsFieldId)?.focus(), 100);
+    } else {
+      btn.disabled = false;
+      showToast(data.message || '发送失败');
+    }
+  } catch {
+    btn.disabled = false;
+    showToast('网络错误，请检查后端是否启动（端口5000）');
+  }
+}
+
+$('phoneLoginSmsBtn').addEventListener('click', () => sendPhoneCode('phoneLoginPhone','phoneLoginCode','login'));
+$('phoneRegSmsBtn').addEventListener('click',   () => sendPhoneCode('phoneRegPhone',  'phoneRegCode',  'register'));
+
+// ================================================================
+//  发送邮箱验证码（邮箱注册）
+// ================================================================
+async function sendEmailCode() {
+  const email = $('emailRegAddr').value.trim().toLowerCase();
+  clearErr($('emailRegAddr'));
+  if (!email)                          { showErr($('emailRegAddr'), '请输入邮箱'); return; }
+  if (!EMAIL_REG.test(email))          { showErr($('emailRegAddr'), '邮箱格式不正确'); return; }
+
+  const btn = $('emailRegSmsBtn');
+  btn.disabled = true;
+
+  try {
+    const data = await apiCall(`${API}/send_email_code`, { email, action: 'register' });
+    if (data.success) {
+      lockBtn(btn, null, null, 60);
+      if (data.data?.debug_code) {
+        showToast(`演示验证码：${data.data.debug_code}`, 'ok');
+      } else {
+        showToast('验证码已发送到邮箱', 'ok');
+      }
+      setTimeout(() => $('emailRegCode')?.focus(), 100);
+    } else {
+      btn.disabled = false;
+      showToast(data.message || '发送失败');
+    }
+  } catch {
+    btn.disabled = false;
+    showToast('网络错误，请检查后端是否启动（端口5000）');
+  }
+}
+
+$('emailRegSmsBtn').addEventListener('click', sendEmailCode);
+
+// ================================================================
+//  手机号登录
+// ================================================================
+$('phoneLoginBtn').addEventListener('click', async () => {
+  const phone = $('phoneLoginPhone').value.trim();
+  const code  = $('phoneLoginCode').value.trim();
+  let ok = true;
+
+  clearErr($('phoneLoginPhone')); clearErr($('phoneLoginCode'));
+  if (!phone)                          { showErr($('phoneLoginPhone'), '请输入手机号'); ok = false; }
+  else if (!PHONE_REG.test(phone))    { showErr($('phoneLoginPhone'), '手机号格式不正确'); ok = false; }
+  if (!code)                           { showErr($('phoneLoginCode'), '请输入验证码'); ok = false; }
+  else if (!CODE_REG.test(code))      { showErr($('phoneLoginCode'), '验证码必须为6位数字'); ok = false; }
+  if (!ok) return;
+
+  const btn = $('phoneLoginBtn'), txt = $('phoneLoginBtnText');
+  setLoading(btn, txt, true);
+
+  try {
+    const data = await apiCall(`${API}/login/sms`, { phone, code });
+    if (data.success && data.data?.access_token) {
+      localStorage.setItem('rtk_access_token', data.data.access_token);
+      localStorage.setItem('rtk_user', JSON.stringify(data.data.user));
+      showToast(`欢迎回来，${data.data.user?.nickname || '用户'}！`, 'ok');
+      setTimeout(() => { window.location.href = '/dashboard'; }, 900);
+    } else {
+      showToast(data.message || '登录失败');
+    }
+  } catch {
+    showToast('网络错误，请检查后端服务是否启动');
+  } finally {
+    setLoading(btn, txt, false);
+  }
+});
+
+// ================================================================
+//  手机号注册
+// ================================================================
+$('phoneRegBtn').addEventListener('click', async () => {
+  const phone    = $('phoneRegPhone').value.trim();
+  const code     = $('phoneRegCode').value.trim();
+  const password = $('phoneRegPw').value;
+  const nickname = $('phoneRegNick').value.trim();
+  let ok = true;
+
+  clearErr($('phoneRegPhone')); clearErr($('phoneRegCode')); clearErr($('phoneRegPw'));
+  if (!phone)                          { showErr($('phoneRegPhone'), '请输入手机号'); ok = false; }
+  else if (!PHONE_REG.test(phone))    { showErr($('phoneRegPhone'), '手机号格式不正确'); ok = false; }
+  if (!code)                           { showErr($('phoneRegCode'), '请输入验证码'); ok = false; }
+  else if (!CODE_REG.test(code))      { showErr($('phoneRegCode'), '验证码必须为6位数字'); ok = false; }
+  if (!password)                       { showErr($('phoneRegPw'), '请设置密码'); ok = false; }
+  else if (password.length < 6)      { showErr($('phoneRegPw'), '密码至少6位'); ok = false; }
+  if (!ok) return;
+
+  const btn = $('phoneRegBtn'), txt = $('phoneRegBtnText');
+  setLoading(btn, txt, true);
+
+  try {
+    const data = await apiCall(`${API}/register/phone`, { phone, code, password, nickname });
+    if (data.success && data.data?.access_token) {
+      localStorage.setItem('rtk_access_token', data.data.access_token);
+      localStorage.setItem('rtk_user', JSON.stringify(data.data.user));
+      showToast(`注册成功，欢迎 ${data.data.user?.nickname || '新用户'}！`, 'ok');
+      setTimeout(() => { window.location.href = '/dashboard'; }, 900);
+    } else {
+      showToast(data.message || '注册失败');
+    }
+  } catch {
+    showToast('网络错误，请检查后端服务是否启动');
+  } finally {
+    setLoading(btn, txt, false);
+  }
+});
+
+// ================================================================
+//  邮箱登录（密码）
+// ================================================================
+$('emailLoginBtn').addEventListener('click', async () => {
+  const email    = $('emailLoginAddr').value.trim().toLowerCase();
+  const password = $('emailLoginPw').value;
+  let ok = true;
+
+  clearErr($('emailLoginAddr')); clearErr($('emailLoginPw'));
+  if (!email)                          { showErr($('emailLoginAddr'), '请输入邮箱'); ok = false; }
+  else if (!EMAIL_REG.test(email))    { showErr($('emailLoginAddr'), '邮箱格式不正确'); ok = false; }
+  if (!password)                       { showErr($('emailLoginPw'), '请输入密码'); ok = false; }
+  if (!ok) return;
+
+  const btn = $('emailLoginBtn'), txt = $('emailLoginBtnText');
+  setLoading(btn, txt, true);
+
+  try {
+    const data = await apiCall(`${API}/login/email`, { email, password });
+    if (data.success && data.data?.access_token) {
+      localStorage.setItem('rtk_access_token', data.data.access_token);
+      localStorage.setItem('rtk_user', JSON.stringify(data.data.user));
+      showToast(`欢迎回来，${data.data.user?.nickname || '用户'}！`, 'ok');
+      setTimeout(() => { window.location.href = '/dashboard'; }, 900);
+    } else {
+      showToast(data.message || '登录失败');
+    }
+  } catch {
+    showToast('网络错误，请检查后端服务是否启动');
+  } finally {
+    setLoading(btn, txt, false);
+  }
+});
+
+// ================================================================
+//  邮箱注册
+// ================================================================
+$('emailRegBtn').addEventListener('click', async () => {
+  const email    = $('emailRegAddr').value.trim().toLowerCase();
+  const code     = $('emailRegCode').value.trim();
+  const password = $('emailRegPw').value;
+  const nickname = $('emailRegNick').value.trim();
+  let ok = true;
+
+  clearErr($('emailRegAddr')); clearErr($('emailRegCode')); clearErr($('emailRegPw'));
+  if (!email)                          { showErr($('emailRegAddr'), '请输入邮箱'); ok = false; }
+  else if (!EMAIL_REG.test(email))    { showErr($('emailRegAddr'), '邮箱格式不正确'); ok = false; }
+  if (!code)                           { showErr($('emailRegCode'), '请输入验证码'); ok = false; }
+  else if (!CODE_REG.test(code))      { showErr($('emailRegCode'), '验证码必须为6位数字'); ok = false; }
+  if (!password)                       { showErr($('emailRegPw'), '请设置密码'); ok = false; }
+  else if (password.length < 6)      { showErr($('emailRegPw'), '密码至少6位'); ok = false; }
+  if (!ok) return;
+
+  const btn = $('emailRegBtn'), txt = $('emailRegBtnText');
+  setLoading(btn, txt, true);
+
+  try {
+    const data = await apiCall(`${API}/register/email`, { email, code, password, nickname });
+    if (data.success && data.data?.access_token) {
+      localStorage.setItem('rtk_access_token', data.data.access_token);
+      localStorage.setItem('rtk_user', JSON.stringify(data.data.user));
+      showToast(`注册成功，欢迎 ${data.data.user?.nickname || '新用户'}！`, 'ok');
+      setTimeout(() => { window.location.href = '/dashboard'; }, 900);
+    } else {
+      showToast(data.message || '注册失败');
+    }
+  } catch {
+    showToast('网络错误，请检查后端服务是否启动');
+  } finally {
+    setLoading(btn, txt, false);
+  }
+});
+
+// ================================================================
+//  回车快捷提交
+// ================================================================
+$('phoneLoginPhone')?.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); $('phoneLoginBtn').click(); }});
+$('phoneLoginCode')?.addEventListener('keydown',  e => { if(e.key==='Enter') { e.preventDefault(); $('phoneLoginBtn').click(); }});
+$('emailLoginAddr')?.addEventListener('keydown', e => { if(e.key==='Enter') { e.preventDefault(); $('emailLoginBtn').click(); }});
+$('emailLoginPw')?.addEventListener('keydown',   e => { if(e.key==='Enter') { e.preventDefault(); $('emailLoginBtn').click(); }});
+
+// ================================================================
+//  初始化
+// ================================================================
+applyMode();
+$('phoneLoginPhone')?.focus();
+</script>
+
+</body>
+</html>

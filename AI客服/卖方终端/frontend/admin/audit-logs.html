@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>审计日志 · RuiTalk</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    :root{--bg:#FFFFFF;--bg-subtle:#F9F9F8;--bg-hover:#F4F4F2;--surface:#FFFFFF;--text-1:#34322D;--text-2:#6B6860;--text-3:#9B9890;--text-4:#C4C1B8;--border:#E5E7EB;--border-soft:rgba(0,0,0,0.06);--btn-primary-bg:#1A1A19;--btn-primary-text:#FFFFFF;--radius-sm:8px;--radius-md:12px;--radius-full:9999px;--shadow-sm:0 1px 3px rgba(0,0,0,0.06);--shadow-md:0 4px 16px rgba(0,0,0,0.07);}
+    [data-theme="dark"]{--bg:#1A1A18;--bg-subtle:#222220;--bg-hover:#2A2A28;--surface:#242422;--text-1:#F0EFE8;--text-2:#A8A59C;--text-3:#706D64;--text-4:#504D46;--border:rgba(255,255,255,0.08);--border-soft:rgba(255,255,255,0.05);--btn-primary-bg:#F0EFE8;--btn-primary-text:#1A1A18;}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;font-size:14px;line-height:1.6;background:var(--bg);color:var(--text-1);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{width:200px;flex-shrink:0;background:var(--bg-subtle);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+    .sidebar-logo{display:flex;align-items:center;gap:9px;padding:18px 16px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-1);}
+    .sidebar-logo-mark{width:28px;height:28px;border-radius:8px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sidebar-logo-text{font-size:13px;font-weight:600;}
+    .sidebar-nav{flex:1;padding:8px;overflow-y:auto;}
+    .snav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13px;transition:background .15s,color .15s;margin-bottom:2px;}
+    .snav-item:hover{background:var(--bg-hover);color:var(--text-1);}
+    .snav-item.active{background:var(--bg-hover);color:var(--text-1);font-weight:500;}
+    .snav-item svg{width:15px;height:15px;flex-shrink:0;}
+    .sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);}
+    .sfooter-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--text-3);text-decoration:none;font-size:12px;background:none;border:none;font-family:inherit;cursor:pointer;width:100%;text-align:left;transition:background .15s,color .15s;}
+    .sfooter-btn:hover{background:var(--bg-hover);color:var(--text-1);}
+    .sfooter-btn svg{width:14px;height:14px;flex-shrink:0;}
+    .main-wrap{margin-left:200px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .nav{position:sticky;top:0;z-index:50;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--bg);border-bottom:1px solid var(--border);}
+    .nav-left{display:flex;align-items:center;gap:8px;}
+    .nav-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--text-1);text-decoration:none;}
+    .nav-logo-mark{width:30px;height:30px;border-radius:9px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;transition:background .3s;}
+    .nav-logo-mark svg{width:17px;height:17px;}
+    .nav-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+    .nav-page-title{font-size:13px;color:var(--text-3);}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .btn-ghost{height:32px;padding:0 14px;background:transparent;border:1px solid rgba(0,0,0,0.10);border-radius:var(--radius-sm);color:var(--text-1);font-size:13px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s;}
+    .btn-ghost:hover{background:var(--bg-hover);}
+    .btn-ghost svg{width:14px;height:14px;}
+    .page{max-width:1200px;margin:0;padding:24px;width:100%;}
+    .page-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .page-title{font-size:20px;font-weight:700;color:var(--text-1);}
+    .page-desc{font-size:13px;color:var(--text-3);margin-top:4px;}
+    .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+    .filter-group{display:flex;flex-direction:column;gap:4px;}
+    .filter-label{font-size:11px;color:var(--text-4);letter-spacing:.04em;text-transform:uppercase;}
+    .filter-select{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;cursor:pointer;outline:none;}
+    .filter-input{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;outline:none;width:140px;}
+    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{padding:9px 12px;font-size:11px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;background:var(--bg-subtle);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+    tbody td{padding:11px 12px;font-size:13px;color:var(--text-1);border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:var(--bg-subtle);}
+    .mono{font-family:"SF Mono","Fira Code",monospace;font-size:11px;color:var(--text-3);}
+    .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--radius-full);font-size:11px;font-weight:500;}
+    .b-green{background:rgba(34,197,94,.10);color:#16A34A;}
+    .b-amber{background:rgba(245,158,11,.10);color:#B45309;}
+    .b-blue{background:rgba(59,130,246,.10);color:#2563EB;}
+    .b-red{background:rgba(239,68,68,.10);color:#DC2626;}
+    .b-gray{background:rgba(107,114,128,.10);color:#374151;}
+    .pagination-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid var(--border);}
+    .page-info{font-size:12px;color:var(--text-4);}
+    .page-btns{display:flex;gap:4px;}
+    .page-btn{height:26px;min-width:26px;padding:0 7px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-2);font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+    .page-btn:hover{background:var(--bg-hover);color:var(--text-1);}
+    .page-btn.active{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .page-btn:disabled{opacity:.4;cursor:not-allowed;}
+    .empty-state{text-align:center;padding:48px 16px;}
+    .empty-state svg{width:40px;height:40px;color:var(--text-4);margin-bottom:8px;}
+    .empty-title{font-size:15px;font-weight:600;color:var(--text-2);}
+    .empty-desc{font-size:13px;color:var(--text-3);margin-top:4px;}
+    @media(max-width:640px){.sidebar{display:none;}.main-wrap{margin-left:0;}.filter-card{flex-direction:column;}.page{padding:16px;}}
+  </style>
+</head>
+<body>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
+<div class="layout">
+  <aside class="sidebar">
+    <a href="/home" class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+      </div>
+      <span class="sidebar-logo-text">客服管理</span>
+    </a>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard-overview" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>数据看板</a>
+      <a href="/admin/orders.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>全部订单</a>
+      <a href="/admin/message-center" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>消息中心</a>
+      <a href="/admin/evaluation.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>评价管理</a>
+      <a href="/admin/pre-sale-notes.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>售前处理</a>
+      <a href="/admin/after-sales.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>售后服务</a>
+      <a href="/admin/audit-logs.html" class="snav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>审计日志</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="/home" class="sfooter-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>返回主界面</a>
+      <button class="sfooter-btn" id="themeBtn2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>深色模式</button>
+    </div>
+  </aside>
+
+  <div class="main-wrap">
+    <nav class="nav">
+      <div class="nav-left">
+        <a href="/home" class="nav-logo">
+          <div class="nav-logo-mark">
+            <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+          </div>
+          拓岳科技
+        </a>
+        <div class="nav-sep"></div>
+        <span class="nav-page-title">审计日志</span>
+      </div>
+      <div class="nav-right">
+        <a href="/home" class="btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>主界面</a>
+        <button class="btn-ghost" id="themeBtn">深色</button>
+      </div>
+    </nav>
+
+    <div class="page">
+      <div class="page-title-row">
+        <div>
+          <div class="page-title">操作审计日志</div>
+          <div class="page-desc">记录所有关键操作，便于追溯和安全审计 · 操作类型包括 CREATE / UPDATE / DELETE / BATCH / LOGIN / LOGOUT</div>
+        </div>
+      </div>
+
+      <!-- 筛选 -->
+      <div class="filter-card">
+        <div class="filter-group">
+          <div class="filter-label">操作类型</div>
+          <select class="filter-select" id="f-type">
+            <option value="">全部</option>
+            <option value="CREATE">CREATE 新建</option>
+            <option value="UPDATE">UPDATE 更新</option>
+            <option value="DELETE">DELETE 删除</option>
+            <option value="BATCH">BATCH 批量操作</option>
+            <option value="LOGIN">LOGIN 登录</option>
+            <option value="LOGOUT">LOGOUT 登出</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">操作人</div>
+          <input class="filter-input" id="f-operator" placeholder="搜索操作人...">
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">目标类型</div>
+          <select class="filter-select" id="f-target">
+            <option value="">全部</option>
+            <option value="pre_sale_note">售前备注</option>
+            <option value="after_sale">售后单</option>
+            <option value="review">评价</option>
+            <option value="auto_reply_rule">自动回复规则</option>
+            <option value="reply_template">回复模板</option>
+            <option value="agent">坐席</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-left:auto;">
+          <button class="btn-ghost" onclick="loadLogs(1)" style="height:30px;padding:0 14px;font-size:12px;border-radius:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            查询
+          </button>
+        </div>
+      </div>
+
+      <!-- 统计概览 -->
+      <div id="statsRow" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;"></div>
+
+      <!-- 表格 -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>操作类型</th>
+                <th>操作人</th>
+                <th>目标类型</th>
+                <th>目标ID</th>
+                <th>详情</th>
+                <th>IP地址</th>
+              </tr>
+            </thead>
+            <tbody id="logTable"><tr><td colspan="7" class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div class="empty-title">暂无数据</div><div class="empty-desc">正在加载...</div></td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination-row">
+          <div class="page-info" id="pageInfo">-</div>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 统一认证工具函数 ====================
+function getAuthToken() {
+  return localStorage.getItem('agent_access_token') || localStorage.getItem('admin_access_token');
+}
+
+function handleUnauthorized() {
+  localStorage.removeItem('admin_access_token');
+  localStorage.removeItem('admin_refresh_token');
+  localStorage.removeItem('agent_access_token');
+  localStorage.removeItem('agent_refresh_token');
+  alert('登录已过期，请重新登录');
+  window.location.href = '/admin/login';
+}
+
+// 页面加载时检查登录
+(function(){
+  if (!getAuthToken()) {
+    window.location.href = '/admin/login';
+  }
+})();
+
+(function(){
+  var t=localStorage.getItem('theme');
+  if(t==='dark')document.documentElement.setAttribute('data-theme','dark');
+  var btn=document.getElementById('themeBtn');
+  var btn2=document.getElementById('themeBtn2');
+  function toggle(){
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    document.documentElement.setAttribute('data-theme',dark?'':'dark');
+    localStorage.setItem('theme',dark?'':'dark');
+  }
+  if(btn)btn.addEventListener('click',toggle);
+  if(btn2)btn2.addEventListener('click',toggle);
+})();
+
+var _logs = [], _total = 0, _page = 1, _pageSize = 50;
+
+async function loadLogs(page) {
+  _page = page || 1;
+  var type = document.getElementById('f-type').value;
+  var operator = document.getElementById('f-operator').value.trim();
+  var target = document.getElementById('f-target').value;
+  var params = new URLSearchParams({page: _page, page_size: _pageSize});
+  if (type) params.set('event_type', type);
+  if (operator) params.set('operator', operator);
+  if (target) params.set('target_type', target);
+  try {
+    var res = await fetch('/api/admin/audit-logs?' + params.toString(), {
+      headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+    });
+    if (res.status === 401) { handleUnauthorized(); return; }
+    var json = await res.json();
+    if (json.success) {
+      _logs = json.logs || json.list || [];
+      _total = json.total || 0;
+      renderTable();
+      renderPagination();
+      renderStats();
+    } else {
+      document.getElementById('logTable').innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-title">加载失败</div><div class="empty-desc">请检查后端服务是否运行</div></td></tr>';
+    }
+  } catch(e) {
+    document.getElementById('logTable').innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-title">加载失败</div><div class="empty-desc">网络错误: '+e.message+'</div></td></tr>';
+  }
+}
+
+function renderTable() {
+  var tbody = document.getElementById('logTable');
+  if (_logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;color:var(--text-4);margin:0 auto 8px;display:block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div class="empty-title">暂无日志</div><div class="empty-desc">当前筛选条件下没有审计日志</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = _logs.map(function(r) {
+    var badge = getEventBadge(r.event_type);
+    return '<tr>'+
+      '<td class="mono">'+fmtTime(r.created_at)+'</td>'+
+      '<td><span class="badge '+badge.cls+'">'+r.event_type+'</span></td>'+
+      '<td>'+escapeHtml(r.operator||'-')+'</td>'+
+      '<td style="color:var(--text-2);font-size:12px;">'+escapeHtml(r.target_type||'-')+'</td>'+
+      '<td class="mono" style="font-size:11px;">'+escapeHtml(r.target_id||'-')+'</td>'+
+      '<td style="font-size:12px;color:var(--text-2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(r.detail||'')+'">'+escapeHtml(r.detail||'-')+'</td>'+
+      '<td class="mono" style="font-size:11px;">'+(r.ip_address?'<span style="color:var(--text-4)">'+r.ip_address+'</span>':'<span style="color:var(--text-4)">-</span>')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderPagination() {
+  var totalPages = Math.ceil(_total / _pageSize) || 1;
+  document.getElementById('pageInfo').textContent = '共 '+_total+' 条，第 '+_page+' / '+totalPages+' 页';
+  var btns = document.getElementById('pageBtns');
+  var html = '';
+  html += '<button class="page-btn" onclick="loadLogs('+(_page-1)+')" '+(_page<=1?'disabled':'')+'>‹</button>';
+  var start = Math.max(1, _page-2);
+  var end = Math.min(totalPages, _page+2);
+  if (start > 1) { html += '<button class="page-btn" onclick="loadLogs(1)">1</button>'; if (start > 2) html += '<span style="padding:0 4px;color:var(--text-4)">...</span>'; }
+  for (var i=start; i<=end; i++) html += '<button class="page-btn '+(i===_page?'active':'')+'" onclick="loadLogs('+i+')">'+i+'</button>';
+  if (end < totalPages) { if (end < totalPages-1) html += '<span style="padding:0 4px;color:var(--text-4)">...</span>'; html += '<button class="page-btn" onclick="loadLogs('+totalPages+')">'+totalPages+'</button>'; }
+  html += '<button class="page-btn" onclick="loadLogs('+(_page+1)+')" '+(_page>=totalPages?'disabled':'')+'>›</button>';
+  btns.innerHTML = html;
+}
+
+function renderStats() {
+  var stats = {};
+  _logs.forEach(function(r) {
+    stats[r.event_type] = (stats[r.event_type]||0)+1;
+  });
+  var el = document.getElementById('statsRow');
+  el.innerHTML = Object.keys(stats).map(function(k) {
+    var b = getEventBadge(k);
+    return '<div class="badge '+b.cls+'" style="font-size:12px;padding:4px 12px;">'+k+': '+stats[k]+'</div>';
+  }).join('');
+}
+
+function getEventBadge(type) {
+  var map = {
+    'CREATE': {cls:'b-green'},
+    'UPDATE': {cls:'b-blue'},
+    'DELETE': {cls:'b-red'},
+    'BATCH': {cls:'b-amber'},
+    'LOGIN': {cls:'b-gray'},
+    'LOGOUT': {cls:'b-gray'},
+  };
+  return map[type] || {cls:'b-gray'};
+}
+
+function fmtTime(dt) {
+  if (!dt) return '-';
+  try { return dt.replace('T',' ').slice(0,19); } catch(e) { return dt; }
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+document.getElementById('f-type').addEventListener('change', function() { loadLogs(1); });
+document.getElementById('f-operator').addEventListener('keyup', function(e) { if (e.key==='Enter') loadLogs(1); });
+document.getElementById('f-target').addEventListener('change', function() { loadLogs(1); });
+
+loadLogs(1);
+</script>
+</body>
+</html>

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>售后服务 · Ruitalk</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    :root {
+      --bg:#FFFFFF; --bg-subtle:#F9F9F8; --bg-hover:#F4F4F2; --surface:#FFFFFF;
+      --text-1:#34322D; --text-2:#6B6860; --text-3:#9B9890; --text-4:#C4C1B8;
+      --border:#E5E7EB; --border-soft:rgba(0,0,0,0.06);
+      --btn-primary-bg:#1A1A19; --btn-primary-text:#FFFFFF;
+      --radius-sm:8px; --radius-md:12px; --radius-lg:22px; --radius-full:9999px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,0.06); --shadow-md:0 4px 16px rgba(0,0,0,0.07);
+    }
+    [data-theme="dark"] {
+      --bg:#1A1A18; --bg-subtle:#222220; --bg-hover:#2A2A28; --surface:#242422;
+      --text-1:#F0EFE8; --text-2:#A8A59C; --text-3:#706D64; --text-4:#504D46;
+      --border:rgba(255,255,255,0.08); --border-soft:rgba(255,255,255,0.05);
+      --btn-primary-bg:#F0EFE8; --btn-primary-text:#1A1A18;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;font-size:14px;line-height:1.6;background:var(--bg);color:var(--text-1);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
+    /* nav */
+    .nav{position:sticky;top:0;z-index:50;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--bg);border-bottom:1px solid var(--border);transition:background .3s,border-color .3s;}
+    .nav-left{display:flex;align-items:center;gap:8px;}
+    .nav-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--text-1);text-decoration:none;}
+    .nav-logo-mark{width:30px;height:30px;border-radius:9px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;transition:background .3s;}
+    .nav-logo-mark svg{width:17px;height:17px;}
+    .nav-sep{width:1px;height:16px;background:var(--border);margin:0 4px;}
+    .nav-page-title{font-size:13px;color:var(--text-3);}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .btn-ghost{height:32px;padding:0 14px;background:transparent;border:1px solid rgba(0,0,0,0.10);border-radius:var(--radius-sm);color:var(--text-1);font-size:13px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s;}
+    .btn-ghost:hover{background:var(--bg-hover);}
+    .btn-ghost svg{width:14px;height:14px;}
+    /* page */
+    .page{max-width:1200px;margin:0;padding:24px 24px 60px;}
+    /* stat row */
+    .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;transition:border-color .15s;}
+    .stat-card:hover{border-color:var(--text-4);}
+    .stat-num{font-size:22px;font-weight:700;color:var(--text-1);line-height:1.2;}
+    .stat-label{font-size:11px;color:var(--text-4);margin-top:3px;}
+    /* tabs */
+    .tabs-bar{display:flex;gap:2px;margin-bottom:16px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:4px;}
+    .tab-btn{height:32px;padding:0 16px;background:transparent;border:none;border-radius:var(--radius-sm);font-size:13px;color:var(--text-3);font-family:inherit;cursor:pointer;transition:background .15s,color .15s;}
+    .tab-btn.active{background:var(--surface);color:var(--text-1);font-weight:500;box-shadow:var(--shadow-sm);}
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+    /* filter */
+    .filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+    .filter-group{display:flex;flex-direction:column;gap:4px;}
+    .filter-label{font-size:11px;color:var(--text-4);letter-spacing:.04em;text-transform:uppercase;}
+    .filter-chips{display:flex;gap:4px;flex-wrap:wrap;}
+    .chip{height:26px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-full);font-size:12px;color:var(--text-2);font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s,color .15s;display:inline-flex;align-items:center;}
+    .chip:hover{background:var(--bg-hover);}
+    .chip.active{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .filter-select{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;cursor:pointer;outline:none;}
+    .filter-input{height:30px;padding:0 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-1);font-family:inherit;outline:none;width:140px;}
+    .filter-input:focus,.filter-select:focus{border-color:var(--text-3);}
+    /* batch bar */
+    .batch-bar{display:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 16px;margin-bottom:10px;align-items:center;gap:10px;}
+    .batch-bar.show{display:flex;}
+    /* table */
+    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{padding:9px 12px;font-size:11px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;background:var(--bg-subtle);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left;}
+    tbody td{padding:11px 12px;font-size:13px;color:var(--text-1);border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:var(--bg-subtle);}
+    .mono{font-family:"SF Mono","Fira Code",monospace;font-size:11px;color:var(--text-3);}
+    /* badges */
+    .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--radius-full);font-size:11px;font-weight:500;white-space:nowrap;}
+    .b-amber{background:rgba(245,158,11,.10);color:#B45309;}
+    .b-blue{background:rgba(59,130,246,.10);color:#2563EB;}
+    .b-green{background:rgba(34,197,94,.10);color:#16A34A;}
+    .b-gray{background:rgba(107,114,128,.10);color:#374151;}
+    .b-red{background:rgba(239,68,68,.10);color:#DC2626;}
+    .b-purple{background:rgba(139,92,246,.10);color:#7C3AED;}
+    .b-dark{background:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .b-orange{background:rgba(249,115,22,.10);color:#C2410C;}
+    [data-theme="dark"] .b-amber{color:#FCD34D;}
+    [data-theme="dark"] .b-blue{color:#93C5FD;}
+    [data-theme="dark"] .b-green{color:#4ADE80;}
+    [data-theme="dark"] .b-red{color:#FCA5A5;}
+    [data-theme="dark"] .b-purple{color:#C4B5FD;}
+    [data-theme="dark"] .b-orange{color:#FCA5A5;}
+    /* empty state */
+    .state-cell{padding:40px 16px!important;text-align:center;}
+    .state-cell svg{width:32px;height:32px;color:var(--text-4);margin-bottom:8px;}
+    .empty-state{display:flex;flex-direction:column;align-items:center;gap:6px;padding:32px 0;}
+    .empty-state svg{width:40px;height:40px;color:var(--text-4);margin-bottom:4px;}
+    .empty-title{font-size:15px;font-weight:600;color:var(--text-2);}
+    .empty-desc{font-size:13px;color:var(--text-3);max-width:400px;line-height:1.6;}
+    .empty-action{margin-top:8px;}
+    .btn-ghost-sm{height:28px;padding:0 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-2);font-size:12px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px;text-decoration:none;transition:background .15s;}
+    .btn-ghost-sm:hover{background:var(--bg-hover);}
+    /* pagination */
+    .pagination-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid var(--border);}
+    .page-info{font-size:12px;color:var(--text-4);}
+    .page-btns{display:flex;gap:4px;}
+    .page-btn{height:26px;min-width:26px;padding:0 7px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-2);font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+    .page-btn:hover{background:var(--bg-hover);color:var(--text-1);}
+    .page-btn.active{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .page-btn:disabled{opacity:.4;cursor:not-allowed;}
+    /* action btns */
+    .btn-action{height:26px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .15s,color .15s;background:transparent;color:var(--text-2);}
+    .btn-action:hover{background:var(--bg-hover);color:var(--text-1);}
+    .btn-action-primary{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .btn-action-primary:hover{opacity:.88;}
+    .btn-action svg{width:12px;height:12px;}
+    /* form */
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;margin-bottom:16px;}
+    .form-section-title{font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+    .form-section-title:first-child{margin-top:0;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+    .form-group{display:flex;flex-direction:column;gap:4px;}
+    .form-group.full{grid-column:1/-1;}
+    .form-label-sm{font-size:12px;color:var(--text-3);font-weight:500;}
+    .form-input{height:32px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;transition:border-color .15s;}
+    .form-input:focus{border-color:var(--text-3);background:var(--surface);}
+    .form-select{height:32px;padding:0 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;cursor:pointer;}
+    .form-textarea{padding:8px 10px;min-height:70px;resize:vertical;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-family:inherit;outline:none;transition:border-color .15s;}
+    .form-textarea:focus{border-color:var(--text-3);background:var(--surface);}
+    .form-hint{font-size:11px;color:var(--text-4);margin-top:2px;}
+    .radio-group{display:flex;flex-wrap:wrap;gap:8px;}
+    .radio-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-2);cursor:pointer;}
+    .info-box{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text-2);display:none;}
+    .info-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-soft);}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:var(--text-3);}
+    /* step progress */
+    .step-progress{display:flex;justify-content:space-between;position:relative;margin:16px 0;}
+    .step-progress::before{content:'';position:absolute;top:14px;left:0;right:0;height:2px;background:var(--border);z-index:0;}
+    .step-item{position:relative;z-index:1;text-align:center;flex:1;}
+    .step-circle{width:28px;height:28px;border-radius:50%;background:var(--bg-subtle);border:1px solid var(--border);color:var(--text-3);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:12px;font-weight:600;}
+    .step-item.active .step-circle{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text);}
+    .step-item.completed .step-circle{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:#16A34A;}
+    .step-label{font-size:11px;color:var(--text-4);}
+    .step-item.active .step-label{color:var(--text-1);font-weight:500;}
+    /* modal */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:760px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);padding:24px;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+    .modal-title{font-size:16px;font-weight:600;color:var(--text-1);}
+    .modal-close{width:28px;height:28px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);transition:background .15s;}
+    .modal-close:hover{background:var(--bg-hover);color:var(--text-1);}
+    .modal-close svg{width:14px;height:14px;}
+    .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+    .btn-modal-cancel{height:32px;padding:0 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-2);font-family:inherit;cursor:pointer;transition:background .15s;}
+    .btn-modal-cancel:hover{background:var(--bg-hover);}
+    .btn-modal-submit{height:32px;padding:0 14px;background:var(--btn-primary-bg);border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--btn-primary-text);font-family:inherit;cursor:pointer;transition:opacity .15s;}
+    .btn-modal-submit:hover{opacity:.88;}
+    /* detail */
+    .detail-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .detail-section{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;}
+    .detail-section-title{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+    .detail-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-soft);font-size:13px;}
+    .detail-row:last-child{border-bottom:none;}
+    .detail-key{color:var(--text-3);}
+    /* timeline */
+    .timeline{border-left:2px solid var(--border);padding-left:16px;margin-left:6px;}
+    .timeline-item{position:relative;padding-bottom:12px;}
+    .timeline-item::before{content:'';position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--btn-primary-bg);}
+    .timeline-time{font-size:11px;color:var(--text-4);}
+    .timeline-text{font-size:13px;color:var(--text-2);margin-top:1px;}
+    /* state */
+    .state-cell{text-align:center;padding:40px 20px;color:var(--text-4);font-size:13px;}
+    .state-cell svg{width:28px;height:28px;margin:0 auto 8px;display:block;}
+    @media(max-width:900px){.stat-row{grid-template-columns:repeat(3,1fr);}.detail-2col{grid-template-columns:1fr;}}
+    @media(max-width:600px){.nav{padding:0 16px;}.page{padding:16px 16px 40px;}.form-row,.form-row-3{grid-template-columns:1fr;}}
+  
+    /* ─── 侧边栏 ─── */
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{width:200px;flex-shrink:0;background:var(--bg-subtle);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:background .3s,border-color .3s;}
+    .sidebar-logo{display:flex;align-items:center;gap:9px;padding:18px 16px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-1);}
+    .sidebar-logo-mark{width:28px;height:28px;border-radius:8px;background:var(--btn-primary-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s;}
+    .sidebar-logo-mark svg{width:15px;height:15px;}
+    .sidebar-logo-text{font-size:13px;font-weight:600;letter-spacing:-0.01em;}
+    .sidebar-nav{flex:1;padding:8px;overflow-y:auto;}
+    .snav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13px;transition:background .15s,color .15s;margin-bottom:2px;}
+    .snav-item:hover{background:var(--bg-hover);color:var(--text-1);}
+    .snav-item.active{background:var(--bg-hover);color:var(--text-1);font-weight:500;}
+    .snav-item svg{width:15px;height:15px;flex-shrink:0;}
+    .sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;}
+    .sfooter-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--text-3);text-decoration:none;font-size:12px;background:none;border:none;font-family:inherit;cursor:pointer;width:100%;text-align:left;transition:background .15s,color .15s;}
+    .sfooter-btn:hover{background:var(--bg-hover);color:var(--text-1);}
+    .sfooter-btn svg{width:14px;height:14px;flex-shrink:0;}
+    .main-wrap{margin-left:200px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    @media(max-width:640px){.sidebar{display:none;}.main-wrap{margin-left:0;}}
+
+  </style>
+</head>
+<body>
+  <script>
+
+// ==================== 统一认证工具函数 ====================
+function getAuthToken() {
+  return localStorage.getItem('agent_access_token') || localStorage.getItem('admin_access_token');
+}
+
+function handleUnauthorized() {
+  localStorage.removeItem('admin_access_token');
+  localStorage.removeItem('admin_refresh_token');
+  localStorage.removeItem('agent_access_token');
+  localStorage.removeItem('agent_refresh_token');
+  alert('登录已过期，请重新登录');
+  window.location.href = '/admin/login';
+}
+
+// Fetch 拦截器 - 自动添加认证 token 并处理 401
+(function() {
+  var origFetch = window.fetch;
+  window.fetch = function(input, init) {
+    init = init || {};
+    var url = typeof input === 'string' ? input : input && input.url;
+    if (typeof url === 'string' && url.indexOf('/api/') !== -1) {
+      var token = getAuthToken();
+      if (token) {
+        var headers = init.headers || {};
+        if (headers instanceof Headers) {
+          if (!headers.has('Authorization')) {
+            headers.set('Authorization', 'Bearer ' + token);
+          }
+        } else {
+          headers['Authorization'] = 'Bearer ' + token;
+          init.headers = headers;
+        }
+      }
+    }
+    return origFetch.call(this, input, init).then(function(res) {
+      if (res.status === 401) {
+        var url2 = typeof input === 'string' ? input : (input && input.url);
+        if (url2 && url2.indexOf('/api/') !== -1) {
+          handleUnauthorized();
+        }
+      }
+      if (res.status === 403) {
+        var url3 = typeof input === 'string' ? input : (input && input.url);
+        if (url3 && url3.indexOf('/api/') !== -1) {
+          alert('权限不足（需要管理员或坐席）。请使用坐席登录或管理员账号登录。');
+        }
+      }
+      return res;
+    }).catch(function(e) { return Promise.reject(e); });
+  };
+})();
+
+// 页面加载时检查登录
+(function(){
+  if (!getAuthToken()) {
+    window.location.href = '/admin/login';
+  }
+})();
+
+(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="/home" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+        </div>
+        <span class="sidebar-logo-text">客服管理</span>
+      </a>
+      <nav class="sidebar-nav">
+        <a href="/admin/dashboard-overview" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>数据看板</a>
+        <a href="/admin/orders.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>全部订单</a>
+        <a href="/admin/message-center" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>消息中心</a>
+        <a href="/admin/evaluation.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>评价管理</a>
+        <a href="/admin/pre-sale-notes.html" class="snav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>售前处理</a>
+        <a href="/admin/after-sales.html" class="snav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>售后服务</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/admin/audit-logs.html" class="sfooter-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>审计日志</a>
+        <a href="/home" class="sfooter-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>返回主界面</a>
+        <button class="sfooter-btn" id="themeBtn2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>深色模式</button>
+      </div>
+    </aside>
+    <div class="main-wrap">
+
+
+  <nav class="nav">
+    <div class="nav-left">
+      <a href="/home" class="nav-logo">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none"><path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/></svg>
+        </div>
+        拓岳科技
+      </a>
+      <div class="nav-sep"></div>
+      <span class="nav-page-title">售后服务</span>
+    </div>
+    <div class="nav-right">
+      <a href="/home" class="btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        主界面
+      </a>
+      <button class="btn-ghost" id="themeBtn">深色</button>
+      <button class="btn-ghost" id="notifBtn" title="通知" onclick="showNotifs()" style="position:relative">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#DC2626;color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <!-- 统计行 -->
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">售后单总数</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-pending" style="color:#B45309">0</div><div class="stat-label">待审核</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-returning" style="color:#2563EB">0</div><div class="stat-label">退货中</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-qc" style="color:#7C3AED">0</div><div class="stat-label">待质检</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-refund" style="color:#DC2626">0</div><div class="stat-label">待退款</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-completed" style="color:#16A34A">0</div><div class="stat-label">已完成</div></div>
+    </div>
+
+    <!-- 导出 + 高级统计 -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--text-4);">
+        支持导出 CSV 格式，便于对账和分析
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" onclick="exportCSV()" style="height:30px;padding:0 12px;font-size:12px;border-radius:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导出 CSV
+        </button>
+        <button class="btn-ghost" onclick="refreshStats()" style="height:30px;padding:0 12px;font-size:12px;border-radius:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          刷新统计
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchTab('list',this)">售后单列表</button>
+      <button class="tab-btn" onclick="switchTab('create',this)">创建售后单</button>
+      <button class="tab-btn" onclick="switchTab('settings',this)">规则设置</button>
+    </div>
+
+    <!-- 列表 Tab -->
+    <div class="tab-pane active" id="tab-list">
+      <div class="filter-card">
+        <div class="filter-group">
+          <div class="filter-label">状态</div>
+          <div class="filter-chips" id="statusFilters">
+            <button class="chip active" data-status="全部">全部</button>
+            <button class="chip" data-status="待审核">待审核</button>
+            <button class="chip" data-status="待买家寄回">待寄回</button>
+            <button class="chip" data-status="待签收">待签收</button>
+            <button class="chip" data-status="待质检">待质检</button>
+            <button class="chip" data-status="待退款">待退款</button>
+            <button class="chip" data-status="完成">已完成</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">类型</div>
+          <div class="filter-chips" id="typeFilters">
+            <button class="chip active" data-type="全部">全部</button>
+            <button class="chip" data-type="退货">退货</button>
+            <button class="chip" data-type="退款">退款</button>
+            <button class="chip" data-type="换货">换货</button>
+            <button class="chip" data-type="补发">补发</button>
+            <button class="chip" data-type="维修">维修</button>
+            <button class="chip" data-type="拒收">拒收</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">平台</div>
+          <select class="filter-select" id="platformFilter">
+            <option value="">全部平台</option>
+            <option value="amazon">Amazon</option>
+            <option value="速卖通">速卖通</option>
+            <option value="temu">Temu</option>
+            <option value="shein">SHEIN</option>
+            <option value="shopee">Shopee</option>
+            <option value="tiktok">TikTok</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">关键字</div>
+          <input type="text" class="filter-input" id="searchKeyword" placeholder="订单号 / 客户名">
+        </div>
+        <div class="filter-group" style="flex-direction:row;gap:6px;align-items:flex-end">
+          <button class="btn-action btn-action-primary" onclick="applySearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            搜索
+          </button>
+          <button class="btn-action" onclick="resetFilters()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+            清空
+          </button>
+        </div>
+      </div>
+
+      <!-- 批量操作 -->
+      <div class="batch-bar" id="batchActions">
+        <span style="font-size:13px;font-weight:500">已选 <span id="selectedCount">0</span> 项</span>
+        <button class="btn-action btn-action-primary" onclick="batchOperation('通过审核')">批量审核</button>
+        <button class="btn-action" onclick="batchOperation('生成退货单')">生成退货单</button>
+        <button class="btn-action" onclick="batchOperation('开始退款')">批量退款</button>
+        <button class="btn-action" onclick="clearSelection()">取消选择</button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                <th>售后单号</th>
+                <th>订单号</th>
+                <th>客户</th>
+                <th>平台</th>
+                <th>类型</th>
+                <th>状态</th>
+                <th>金额</th>
+                <th>仓库</th>
+                <th>风险</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="asTableBody">
+              <tr><td colspan="12" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-row">
+          <span class="page-info" id="pageInfo">共 0 条</span>
+          <div class="page-btns" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建 Tab -->
+    <div class="tab-pane" id="tab-create">
+      <form id="createAsForm" onsubmit="createAfterSales(event)">
+        <div class="form-card">
+          <div class="form-section-title">订单信息</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">关联订单号 *</label>
+              <div style="display:flex;gap:6px">
+                <input type="text" class="form-input" id="orderId" placeholder="输入订单号" required style="flex:1">
+                <button type="button" class="btn-action btn-action-primary" onclick="fetchOrderInfo()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  获取
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">平台</label>
+              <select class="form-select" id="orderPlatform">
+                <option value="amazon">Amazon</option><option value="速卖通">速卖通</option>
+                <option value="temu">Temu</option><option value="shein">SHEIN</option>
+                <option value="shopee">Shopee</option><option value="tiktok">TikTok</option>
+              </select>
+            </div>
+          </div>
+          <div class="info-box" id="orderInfoSection">
+            <div class="info-row"><span class="info-label">客户名</span><span id="orderCustomerName">—</span></div>
+            <div class="info-row"><span class="info-label">客户ID</span><span id="orderCustomerId">—</span></div>
+            <div class="info-row"><span class="info-label">商品</span><span id="orderProducts">—</span></div>
+            <div class="info-row"><span class="info-label">金额</span><span id="orderAmount">—</span></div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-section-title">售后类型</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="asType" value="退货" checked> 退货</label>
+            <label class="radio-item"><input type="radio" name="asType" value="退款"> 退款</label>
+            <label class="radio-item"><input type="radio" name="asType" value="换货"> 换货</label>
+            <label class="radio-item"><input type="radio" name="asType" value="补发"> 补发</label>
+            <label class="radio-item"><input type="radio" name="asType" value="维修"> 维修</label>
+            <label class="radio-item"><input type="radio" name="asType" value="拒收"> 拒收</label>
+          </div>
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group">
+              <label class="form-label-sm">原因分类</label>
+              <select class="form-select" id="asReasonCategory">
+                <option value="质量问题">质量问题</option><option value="商品破损">商品破损</option>
+                <option value="少发漏发">少发漏发</option><option value="错发">错发</option>
+                <option value="描述不符">描述不符</option><option value="买家无理由">买家无理由</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">详细原因 *</label>
+              <input type="text" class="form-input" id="asReason" placeholder="请填写具体原因" required>
+            </div>
+          </div>
+          <div id="exchangeReshipSection" style="display:none">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label-sm">换货/补发商品</label>
+                <input type="text" class="form-input" id="exchangeProduct" placeholder="商品名称/SKU">
+              </div>
+              <div class="form-group">
+                <label class="form-label-sm">数量</label>
+                <input type="number" class="form-input" id="exchangeQty" value="1" min="1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-section-title">退款明细</div>
+          <div class="form-row-3">
+            <div class="form-group"><label class="form-label-sm">商品金额 ($)</label><input type="number" class="form-input" id="refundProductAmount" step="0.01" value="0.00"></div>
+            <div class="form-group"><label class="form-label-sm">运费 ($)</label><input type="number" class="form-input" id="refundShipping" step="0.01" value="0.00"></div>
+            <div class="form-group"><label class="form-label-sm">补贴 ($)</label><input type="number" class="form-input" id="refundSubsidy" step="0.01" value="0.00"></div>
+            <div class="form-group"><label class="form-label-sm">关税 ($)</label><input type="number" class="form-input" id="refundCustoms" step="0.01" value="0.00"></div>
+            <div class="form-group"><label class="form-label-sm">佣金 ($)</label><input type="number" class="form-input" id="refundCommission" step="0.01" value="0.00"></div>
+            <div class="form-group"><label class="form-label-sm">其他 ($)</label><input type="number" class="form-input" id="refundOther" step="0.01" value="0.00"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">退款总额 ($)</label>
+              <input type="number" class="form-input" id="refundTotal" readonly style="font-weight:600">
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">退款方式</label>
+              <select class="form-select" id="refundMethod">
+                <option value="原路退回">原路退回</option><option value="平台退款">平台退款</option>
+                <option value="店铺积分">店铺积分</option><option value="其他">其他</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-section-title">物流与仓库</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">退货地址类型</label>
+              <select class="form-select" id="returnAddressType">
+                <option value="国内">国内退货地址</option><option value="海外">海外退货地址</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">目标仓库</label>
+              <select class="form-select" id="returnWarehouse">
+                <option value="深圳仓">深圳仓</option><option value="义乌仓">义乌仓</option>
+                <option value="美国洛杉矶仓">美国洛杉矶仓</option><option value="英国伦敦仓">英国伦敦仓</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-section-title">备注</div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label-sm">内部备注</label><textarea class="form-textarea" id="internalNote" placeholder="仅内部可见…"></textarea></div>
+            <div class="form-group"><label class="form-label-sm">买家通知</label><textarea class="form-textarea" id="buyerNote" placeholder="发送给买家的消息…"></textarea></div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button type="button" class="btn-action" onclick="resetCreateForm()">重置</button>
+            <button type="submit" class="btn-action btn-action-primary">创建售后单</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- 设置 Tab -->
+    <div class="tab-pane" id="tab-settings">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-card">
+          <div class="form-section-title">自动退款规则</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="autoRefundEnabled"> 启用自动退款
+            </label>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">低价商品自动退款阈值 ($)</label>
+            <input type="number" class="form-input" id="autoRefundThreshold" value="10">
+            <span class="form-hint">低于此金额的商品自动秒退</span>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">优质客户自动退款额度 ($)</label>
+            <input type="number" class="form-input" id="vipRefundLimit" value="50">
+            <span class="form-hint">优质客户在此额度内自动退款</span>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-section-title">超时提醒设置</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">审核超时（小时）</label>
+            <input type="number" class="form-input" id="auditTimeout" value="24">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">退款超时（小时）</label>
+            <input type="number" class="form-input" id="refundTimeout" value="48">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">纠纷处理超时（小时）</label>
+            <input type="number" class="form-input" id="disputeTimeout" value="72">
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-section-title">退货地址管理</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">国内退货地址</label>
+            <textarea class="form-textarea" id="domesticReturnAddr">广东省深圳市龙华区民治街道 联系人和电话</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">海外退货地址</label>
+            <textarea class="form-textarea" id="overseasReturnAddr">美国洛杉矶退货地址</textarea>
+          </div>
+          <button type="button" class="btn-action btn-action-primary" onclick="alert('地址已保存')">保存地址</button>
+        </div>
+        <div class="form-card">
+          <div class="form-section-title">快捷回复模板</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">退货确认</label>
+            <textarea class="form-textarea">您好，我们已收到您的退货申请，请于7天内将商品寄回至退货地址。</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">退款完成</label>
+            <textarea class="form-textarea">您好，您的退款已处理完成，预计3-5个工作日到账，请注意查收。</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label-sm">换货发货</label>
+            <textarea class="form-textarea">您好，您的换货商品已发出，快递单号：XXX，请注意查收。</textarea>
+          </div>
+          <button type="button" class="btn-action btn-action-primary" onclick="alert('模板已保存')">保存模板</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 详情弹窗 -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">售后单详情</span>
+        <button class="modal-close" onclick="closeModal('detailModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <!-- 步骤条 -->
+      <div class="step-progress" id="detailStepProgress"></div>
+      <!-- 内容 -->
+      <div class="detail-2col" id="detailContent"></div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeModal('detailModal')">关闭</button>
+        <button class="btn-modal-submit" id="detailAdvanceBtn" onclick="updateStatus()">推进状态</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage=1,pageSize=20,totalRecords=0;
+    let selectedIds=new Set();
+    let currentFilter={status:'全部',type:'全部',platform:'',keyword:''};
+    let afterSalesList=[];
+
+    // tab 切换
+    function switchTab(id,btn){
+      document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.getElementById('tab-'+id).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // modal
+    function openModal(id){document.getElementById(id).classList.add('open');}
+    function closeModal(id){document.getElementById(id).classList.remove('open');}
+    document.querySelectorAll('.modal-overlay').forEach(function(el){
+      el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});
+    });
+
+    // 事件绑定
+    document.addEventListener('DOMContentLoaded',function(){
+      loadAfterSales();
+      // 状态筛选
+      document.querySelectorAll('#statusFilters .chip').forEach(function(btn){
+        btn.addEventListener('click',function(){
+          document.querySelectorAll('#statusFilters .chip').forEach(function(b){b.classList.remove('active');});
+          this.classList.add('active');
+          currentFilter.status=this.dataset.status;
+          currentPage=1; loadAfterSales();
+        });
+      });
+      // 类型筛选
+      document.querySelectorAll('#typeFilters .chip').forEach(function(btn){
+        btn.addEventListener('click',function(){
+          document.querySelectorAll('#typeFilters .chip').forEach(function(b){b.classList.remove('active');});
+          this.classList.add('active');
+          currentFilter.type=this.dataset.type;
+          currentPage=1; loadAfterSales();
+        });
+      });
+      document.getElementById('platformFilter').addEventListener('change',function(){currentFilter.platform=this.value;currentPage=1;loadAfterSales();});
+      document.getElementById('searchKeyword').addEventListener('keyup',function(e){if(e.key==='Enter'){currentFilter.keyword=this.value;currentPage=1;loadAfterSales();}});
+      // 售后类型 radio
+      document.querySelectorAll('input[name="asType"]').forEach(function(r){
+        r.addEventListener('change',function(){
+          var sec=document.getElementById('exchangeReshipSection');
+          sec.style.display=(this.value==='换货'||this.value==='补发')?'block':'none';
+        });
+      });
+      // 金额计算
+      ['refundProductAmount','refundShipping','refundSubsidy','refundCustoms','refundCommission','refundOther'].forEach(function(id){
+        document.getElementById(id).addEventListener('input',calculateRefundTotal);
+      });
+      calculateRefundTotal();
+    });
+
+    function calculateRefundTotal(){
+      var total=['refundProductAmount','refundShipping','refundSubsidy','refundCustoms','refundCommission','refundOther']
+        .reduce(function(s,id){return s+(parseFloat(document.getElementById(id).value)||0);},0);
+      document.getElementById('refundTotal').value=total.toFixed(2);
+    }
+
+    function fetchOrderInfo(){
+      var orderId=document.getElementById('orderId').value.trim();
+      if(!orderId){alert('请输入订单号');return;}
+      var orderData=afterSalesList.find(function(item){return item.orderId===orderId||item.id===orderId;});
+      if(!orderData){
+        var idx=parseInt(orderId.replace(/\D/g,''))||Math.floor(Math.random()*100);
+        var amountVal=10+((idx*17+31)%190)+(idx%100)/100;
+        orderData={customerId:'C'+String(1000+idx).padStart(4,'0'),customerName:'Customer '+(idx+1),products:'Product '+(idx+1),amount:'$'+amountVal.toFixed(2),platform:['amazon','速卖通','temu','shein','shopee','tiktok'][idx%6]};
+      }
+      document.getElementById('orderCustomerName').textContent=orderData.customerName;
+      document.getElementById('orderCustomerId').textContent=orderData.customerId;
+      document.getElementById('orderProducts').textContent=orderData.products||'-';
+      document.getElementById('orderAmount').textContent=orderData.amount;
+      document.getElementById('orderPlatform').value=orderData.platform||'amazon';
+      document.getElementById('orderInfoSection').style.display='block';
+      var amountNum=parseFloat((orderData.amount||'0').replace(/[^\d.]/g,''))||0;
+      document.getElementById('refundProductAmount').value=amountNum.toFixed(2);
+      calculateRefundTotal();
+    }
+
+    function applySearch(){currentFilter.keyword=(document.getElementById('searchKeyword').value||'').trim();currentPage=1;loadAfterSales();}
+    function resetFilters(){
+      document.getElementById('searchKeyword').value='';
+      currentFilter={status:'全部',type:'全部',platform:'',keyword:''};
+      document.querySelectorAll('#statusFilters .chip').forEach(function(b){b.classList.remove('active');if(b.dataset.status==='全部')b.classList.add('active');});
+      document.querySelectorAll('#typeFilters .chip').forEach(function(b){b.classList.remove('active');if(b.dataset.type==='全部')b.classList.add('active');});
+      document.getElementById('platformFilter').value='';
+      currentPage=1; loadAfterSales();
+    }
+
+    function filterAfterSalesList(list){
+      var filtered=list.slice();
+      var status=currentFilter.status,type=currentFilter.type,platform=currentFilter.platform,keyword=(currentFilter.keyword||'').trim().toLowerCase();
+      if(status&&status!=='全部'){var sm=status==='待寄回'?'待买家寄回':status;filtered=filtered.filter(function(i){return i.status===sm;});}
+      if(type&&type!=='全部') filtered=filtered.filter(function(i){return i.type===type;});
+      if(platform) filtered=filtered.filter(function(i){return (i.platform||'')===platform;});
+      if(keyword) filtered=filtered.filter(function(i){return (i.orderId||'').toLowerCase().indexOf(keyword)!==-1||(i.customerId||'').toLowerCase().indexOf(keyword)!==-1||(i.customerName||'').toLowerCase().indexOf(keyword)!==-1;});
+      return filtered;
+    }
+
+    /** 将接口 after_sales 行转为与列表一致的记录（供筛选/导出共用） */
+    function mapAfterSalesRows(rawList) {
+      if (!rawList || !rawList.length) return [];
+      return rawList.map(function (r) {
+        var amt = parseFloat(r.refund_total || 0);
+        var ct = (r.created_at != null ? String(r.created_at) : '').slice(0, 19).replace('T', ' ');
+        return {
+          id: r.as_id,
+          orderId: r.order_id || '',
+          customerName: r.customer_name || '—',
+          customerId: r.customer_id || '—',
+          platform: r.platform || '—',
+          type: r.type || '—',
+          status: r.status || '—',
+          amount: amt.toFixed(2),
+          warehouse: r.warehouse || '—',
+          risk: (r.reason_category === '恶意买家' || r.reason_category === '欺诈') ? '高风险' : '正常',
+          createTime: ct || '—',
+          reason_category: r.reason_category || '',
+          refund_method: r.refund_method || ''
+        };
+      });
+    }
+
+    async function loadAfterSales(){
+      var tbody=document.getElementById('asTableBody');
+      tbody.innerHTML='<tr><td colspan="12" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>加载中…</td></tr>';
+      try {
+        var apiData = null;
+        var resp = await fetch('/api/admin/after-sales?page=' + currentPage + '&page_size=' + pageSize);
+        var json = await resp.json();
+        if (json.success) {
+          apiData = json;
+        } else {
+          // API 返回错误或未配置
+          afterSalesList = [];
+          totalRecords = 0;
+          renderAfterSalesTable([]);
+          renderPagination();
+          updateStatistics({total:0, pending:0, returning:0, qc:0, refund:0, completed:0});
+          tbody.innerHTML = '<tr><td colspan="12" class="state-cell"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="empty-title">暂无售后单数据</div><div class="empty-desc">' + (json.message || '当前没有售后单数据，请检查电商平台 API 配置。') + '</div></div></td></tr>';
+          return;
+        }
+
+        // API 返回成功，使用真实数据（兼容仅返回 after_sales 的旧接口）
+        afterSalesList = apiData.list || [];
+        if (!afterSalesList.length && apiData.after_sales && apiData.after_sales.length) {
+          afterSalesList = mapAfterSalesRows(apiData.after_sales);
+        }
+        totalRecords = apiData.total || afterSalesList.length;
+        var filteredList = filterAfterSalesList(afterSalesList);
+        renderAfterSalesTable(filteredList.slice(0, pageSize));
+        renderPagination();
+        updateStatistics(apiData.stats || {});
+      } catch(err){
+        // 网络错误或其他异常
+        afterSalesList = [];
+        totalRecords = 0;
+        renderAfterSalesTable([]);
+        renderPagination();
+        updateStatistics({total:0, pending:0, returning:0, qc:0, refund:0, completed:0});
+        tbody.innerHTML = '<tr><td colspan="12" class="state-cell"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="empty-title">加载失败</div><div class="empty-desc">无法连接到服务器，请检查网络连接后刷新重试。</div></div></td></tr>';
+      }
+    }
+
+    function renderAfterSalesTable(data){
+      var tbody=document.getElementById('asTableBody');
+      if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="12" class="state-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>暂无售后单数据</td></tr>';return;}
+      tbody.innerHTML=data.map(function(item){
+        return '<tr><td><input type="checkbox" class="as-checkbox" value="'+item.id+'" onchange="toggleSelect(\''+item.id+'\')"></td><td><a href="javascript:void(0)" onclick="showAsDetail(\''+item.id+'\')" style="color:var(--text-1);text-decoration:none;font-family:\'SF Mono\',monospace;font-size:11px">'+item.id+'</a></td><td class="mono">'+item.orderId+'</td><td><div style="font-weight:500">'+item.customerName+'</div><div style="font-size:11px;color:var(--text-4)">'+item.customerId+'</div></td><td>'+platformBadge(item.platform)+'</td><td>'+typeBadge(item.type)+'</td><td>'+statusBadge(item.status)+'</td><td style="font-weight:600">$'+item.amount+'</td><td style="font-size:12px;color:var(--text-3)">'+item.warehouse+'</td><td>'+(item.risk==='高风险'?'<span class="badge b-red">高风险</span>':'<span class="badge b-green">正常</span>')+'</td><td style="font-size:11px;color:var(--text-4)">'+item.createTime+'</td><td style="white-space:nowrap"><button class="btn-action" onclick="showAsDetail(\''+item.id+'\')" title="查看"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button> <button class="btn-action" onclick="updateStatus(\''+item.id+'\')" title="推进"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="9 18 15 12 9 6"/></svg></button></td></tr>';
+      }).join('');
+    }
+
+    function statusBadge(s){var map={'待审核':'b-amber','待买家寄回':'b-blue','待签收':'b-blue','待质检':'b-purple','待退款':'b-red','完成':'b-green','已关闭':'b-gray'};return '<span class="badge '+(map[s]||'b-gray')+'">'+s+'</span>';}
+    function typeBadge(t){var map={'退货':'b-red','退款':'b-amber','换货':'b-blue','补发':'b-green','维修':'b-purple','拒收':'b-gray'};return '<span class="badge '+(map[t]||'b-gray')+'">'+t+'</span>';}
+    function platformBadge(p){var map={'amazon':'b-dark','速卖通':'b-orange','temu':'b-dark','shein':'b-red','shopee':'b-orange','tiktok':'b-dark'};var label={'amazon':'Amazon','速卖通':'速卖通','temu':'Temu','shein':'SHEIN','shopee':'Shopee','tiktok':'TikTok'};return '<span class="badge '+(map[p]||'b-gray')+'">'+(label[p]||p)+'</span>';}
+
+    function updateStatistics(stats){
+      document.getElementById('stat-total').textContent=stats.total;
+      document.getElementById('stat-pending').textContent=stats.pending;
+      document.getElementById('stat-returning').textContent=stats.returning;
+      document.getElementById('stat-qc').textContent=stats.qc;
+      document.getElementById('stat-refund').textContent=stats.refund;
+      document.getElementById('stat-completed').textContent=stats.completed;
+    }
+
+    function renderPagination(){
+      var totalPages=Math.ceil(totalRecords/pageSize);
+      document.getElementById('pageInfo').textContent='共 '+totalRecords+' 条';
+      var pg=document.getElementById('pagination');
+      if(totalPages<=1){pg.innerHTML='';return;}
+      var html='<button class="page-btn" '+(currentPage===1?'disabled':'')+' onclick="goToPage('+(currentPage-1)+')">‹</button>';
+      for(var i=1;i<=totalPages;i++){
+        if(i===1||i===totalPages||(i>=currentPage-2&&i<=currentPage+2)){html+='<button class="page-btn '+(i===currentPage?'active':'')+'" onclick="goToPage('+i+')">'+i+'</button>';}
+        else if(i===currentPage-3||i===currentPage+3){html+='<span class="page-btn" style="cursor:default">…</span>';}
+      }
+      html+='<button class="page-btn" '+(currentPage>=totalPages?'disabled':'')+' onclick="goToPage('+(currentPage+1)+')">›</button>';
+      pg.innerHTML=html;
+    }
+    function goToPage(p){currentPage=p;loadAfterSales();window.scrollTo(0,0);}
+
+    function toggleSelect(id){if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);updateBatchActions();}
+    function toggleSelectAll(){var sel=document.getElementById('selectAll').checked;document.querySelectorAll('.as-checkbox').forEach(function(cb){cb.checked=sel;if(sel)selectedIds.add(cb.value);else selectedIds.delete(cb.value);});updateBatchActions();}
+    function updateBatchActions(){var ba=document.getElementById('batchActions');document.getElementById('selectedCount').textContent=selectedIds.size;if(selectedIds.size>0)ba.classList.add('show');else ba.classList.remove('show');}
+    function clearSelection(){selectedIds.clear();document.getElementById('selectAll').checked=false;document.querySelectorAll('.as-checkbox').forEach(function(cb){cb.checked=false;});updateBatchActions();}
+    async function batchOperation(op){
+      if(selectedIds.size===0){alert('请先选择要操作的售后单');return;}
+      if(!confirm('确定要对 '+selectedIds.size+' 个售后单执行「'+op+'」操作吗？'))return;
+      var actionMap = {
+        '通过审核': 'approve',
+        '生成退货单': 'generate_return',
+        '开始退款': 'process_refund'
+      };
+      var action = actionMap[op] || op;
+      try {
+        var resp = await fetch('/api/admin/after-sales/batch',{
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            ids: Array.from(selectedIds),
+            action: action
+          })
+        });
+        var result = await resp.json();
+        if(result.success){
+          alert('批量操作成功：' + (result.message || '已处理 ' + selectedIds.size + ' 个售后单'));
+          clearSelection();
+          loadAfterSales();
+        } else {
+          alert('批量操作失败：' + (result.message || '未知错误'));
+        }
+      } catch(err){
+        alert('批量操作失败：' + err.message);
+      }
+    }
+
+    async function showAsDetail(id){
+      try {
+        var resp = await fetch('/api/admin/after-sales/' + encodeURIComponent(id));
+        var json = await resp.json();
+        var as;
+        if (json.success && json.data) {
+          as = json.data;
+        } else {
+          // Fallback: 从本地列表查找
+          as = afterSalesList.find(function(item){return item.id===id;});
+          if (!as) {
+            alert('未找到该售后单详情');
+            return;
+          }
+        }
+
+        // 步骤条
+        var steps=['待审核','待买家寄回','待签收','待质检','待退款','完成'];
+        var curIdx=steps.indexOf(as.status);
+        var spEl=document.getElementById('detailStepProgress');
+        spEl.innerHTML=steps.map(function(s,i){
+          var cls=i<curIdx?'completed':i===curIdx?'active':'';
+          return '<div class="step-item '+cls+'"><div class="step-circle">'+(i<curIdx?'✓':(i+1))+'</div><div class="step-label">'+s+'</div></div>';
+        }).join('');
+        // 内容
+        var amount=parseFloat(as.amount) || parseFloat(as.refund_total) || 0;
+        var refundBreakdown = as.refund_breakdown || {};
+        var html='<div class="detail-section"><div class="detail-section-title">基本信息</div>';
+        [['售后单号',as.id || as.after_sales_id],['订单号',as.order_id || as.orderId||'—'],['客户',(as.customer_name||as.customerName||'—')+' ('+(as.customer_id||as.customerId||'—')+')'],['平台',platformBadge(as.platform)],['类型',typeBadge(as.type||as.after_sales_type)],['状态',statusBadge(as.status)],['原因',as.reason||as.reason_category||'—']].forEach(function(r){html+='<div class="detail-row"><span class="detail-key">'+r[0]+'</span><span>'+r[1]+'</span></div>';});
+        html+='</div><div class="detail-section"><div class="detail-section-title">退款明细</div>';
+        [['商品金额','$'+(refundBreakdown.product_amount||refundBreakdown.product||(amount*.8)).toFixed(2)],['运费','$'+(refundBreakdown.shipping||(amount*.1)).toFixed(2)],['补贴','$'+(refundBreakdown.subsidy||0).toFixed(2)],['关税','$'+(refundBreakdown.customs||(amount*.05)).toFixed(2)],['佣金','$'+(refundBreakdown.commission||(amount*.05)).toFixed(2)],['退款总额','$'+(as.refund_total||as.amount||0).toFixed(2)]].forEach(function(r){html+='<div class="detail-row"><span class="detail-key">'+r[0]+'</span><span style="font-weight:500">'+r[1]+'</span></div>';});
+        html+='</div><div class="detail-section"><div class="detail-section-title">仓库信息</div>';
+        [['仓库',as.warehouse||'待分配'],['入库状态',as.warehouse_status?'<span class="badge b-green">已入库</span>':'<span class="badge b-amber">待入库</span>'],['质检结果',as.qc_result||'待质检']].forEach(function(r){html+='<div class="detail-row"><span class="detail-key">'+r[0]+'</span><span>'+r[1]+'</span></div>';});
+        // 物流时间线
+        var timelineData = as.timeline || as.logistics_timeline || [];
+        if (timelineData.length > 0) {
+          html+='</div><div class="detail-section"><div class="detail-section-title">物流时间线</div><div class="timeline">';
+          timelineData.forEach(function(t){html+='<div class="timeline-item"><div class="timeline-time">'+t.time+'</div><div class="timeline-text">'+t.event+'</div></div>';});
+          html+='</div></div>';
+        } else {
+          html+='</div>';
+        }
+        document.getElementById('detailContent').innerHTML=html;
+        document.getElementById('detailAdvanceBtn').setAttribute('data-id',as.id||as.after_sales_id);
+        openModal('detailModal');
+      } catch(err){
+        alert('加载详情失败：' + err.message);
+      }
+    }
+
+    async function updateStatus(id){
+      if(!id){var btn=document.getElementById('detailAdvanceBtn');id=btn&&btn.getAttribute('data-id');}
+      var statusFlow=['待审核','待买家寄回','待签收','待质检','待退款','完成'];
+      var currentAs=afterSalesList.find(function(item){return item.id===id;});
+      if(!currentAs){alert('未找到该售后单');return;}
+      var ci=statusFlow.indexOf(currentAs.status);
+      if(ci>=statusFlow.length-1){alert('该售后单已完成，无法继续推进');return;}
+      var nextStatus=statusFlow[ci+1];
+      if(!confirm('确定要将状态从「'+currentAs.status+'」推进到「'+nextStatus+'」吗？'))return;
+      try {
+        var resp = await fetch('/api/admin/after-sales/' + encodeURIComponent(id) + '/status',{
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({status: nextStatus})
+        });
+        var result = await resp.json();
+        if(result.success){
+          alert('状态已更新为：'+nextStatus);
+          closeModal('detailModal');
+          loadAfterSales();
+        } else {
+          alert('更新失败：'+(result.message||'未知错误'));
+        }
+      } catch(err){
+        alert('更新失败：'+err.message);
+      }
+    }
+
+    function createAfterSales(e){
+      e.preventDefault();
+      var formData={orderId:document.getElementById('orderId').value,platform:document.getElementById('orderPlatform').value,type:document.querySelector('input[name="asType"]:checked')?.value,reasonCategory:document.getElementById('asReasonCategory').value,reason:document.getElementById('asReason').value,refundTotal:document.getElementById('refundTotal').value};
+      if(!formData.orderId||!formData.type||!formData.reason){alert('请填写必填项');return;}
+      alert('售后单创建成功！');
+      resetCreateForm();
+      document.querySelectorAll('.tab-btn')[0].click();
+      loadAfterSales();
+    }
+
+    function resetCreateForm(){
+      document.getElementById('createAsForm').reset();
+      document.getElementById('orderInfoSection').style.display='none';
+      document.getElementById('exchangeReshipSection').style.display='none';
+      calculateRefundTotal();
+    }
+
+    // 主题切换
+    (function(){
+      var btn=document.getElementById('themeBtn');
+      function apply(t){if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');btn.textContent='浅色';}else{document.documentElement.removeAttribute('data-theme');btn.textContent='深色';}}
+      apply(localStorage.getItem('theme')||'light');
+      btn.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var next=cur==='dark'?'light':'dark';apply(next);localStorage.setItem('theme',next);});
+    })();
+  </script>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var btn2=document.getElementById('themeBtn2');
+      if(btn2){
+        function applyTheme(t){if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');if(btn2)btn2.lastChild.textContent=' 浅色模式';}else{document.documentElement.removeAttribute('data-theme');if(btn2)btn2.lastChild.textContent=' 深色模式';}}
+        applyTheme(localStorage.getItem('theme')||'light');
+        btn2.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var next=cur==='dark'?'light':'dark';applyTheme(next);localStorage.setItem('theme',next);});
+      }
+    })();
+  </script>
+
+  <!-- 通知弹窗 -->
+  <div id="notifPanel" style="display:none;position:fixed;top:60px;right:24px;z-index:600;width:360px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);max-height:480px;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+      <span style="font-size:14px;font-weight:600;color:var(--text-1);">通知中心</span>
+      <button onclick="document.getElementById('notifPanel').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;line-height:1;">&times;</button>
+    </div>
+    <div id="notifList" style="padding:8px 0;"></div>
+  </div>
+
+  <script>
+  // 通知系统
+  async function loadNotifications() {
+    try {
+      const res = await fetch('/api/admin/notifications?page_size=20');
+      const json = await res.json();
+      if (json.success && json.list) {
+        const badge = document.getElementById('notifBadge');
+        const countRes = await fetch('/api/admin/notifications/unread-count');
+        const countJson = await countRes.json();
+        if (countJson.count > 0) {
+          badge.textContent = countJson.count > 99 ? '99+' : countJson.count;
+          badge.style.display = 'block';
+        }
+        const panel = document.getElementById('notifList');
+        if (json.list.length === 0) {
+          panel.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-4);font-size:13px;">暂无通知</div>';
+        } else {
+          panel.innerHTML = json.list.map(n => `
+            <div style="padding:10px 16px;border-bottom:1px solid var(--border-soft);cursor:pointer;${n.is_read ? 'opacity:0.6' : ''}" onclick="markRead(${n.id},this)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                <span style="font-size:13px;font-weight:${n.is_read ? '400' : '500'};color:var(--text-1);">${escapeHtml(n.title)}</span>
+                <span style="font-size:11px;color:var(--text-4);">${timeAgo(n.created_at)}</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-3);">${escapeHtml(n.content || '')}</div>
+            </div>
+          `).join('');
+        }
+      }
+    } catch(e) { console.warn('通知加载失败:', e); }
+  }
+
+  async function markRead(id, el) {
+    try {
+      await fetch(`/api/admin/notifications/${id}/read`, {method:'POST'});
+      el.style.opacity = '0.6';
+      const badge = document.getElementById('notifBadge');
+      const n = parseInt(badge.textContent) - 1;
+      badge.textContent = n > 0 ? n : 0;
+      if (n <= 0) badge.style.display = 'none';
+    } catch(e) {}
+  }
+
+  function showNotifs() {
+    const panel = document.getElementById('notifPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') loadNotifications();
+  }
+
+  function escapeHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function timeAgo(dt) {
+    if (!dt) return '';
+    const d = new Date(dt.replace(' ', 'T'));
+    const diff = Date.now() - d.getTime();
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff/60000) + '分钟前';
+    if (diff < 86400000) return Math.floor(diff/3600000) + '小时前';
+    return Math.floor(diff/86400000) + '天前';
+  }
+
+  // 高级统计加载
+  async function refreshStats() {
+    try {
+      const res = await fetch('/api/admin/advanced-stats');
+      const json = await res.json();
+      if (json.success && json.stats) {
+        const s = json.stats;
+        document.getElementById('stat-pending').textContent = s.pending_after_sales || 0;
+        // 更新其他统计
+        const el = document.getElementById('stat-total');
+        if (el) el.textContent = s.total_customers || 0;
+        // 重新获取售后统计
+        loadStats();
+      }
+    } catch(e) { console.warn('高级统计加载失败:', e); }
+  }
+
+  // 导出 CSV（原先用 window._allAfterSales 从未赋值导致恒为空；现按筛选条件拉取足够页大小后导出）
+  async function exportCSV() {
+    try {
+      var limit = Math.min(2000, Math.max(totalRecords || 0, afterSalesList.length || 0, 50));
+      var res = await fetch('/api/admin/after-sales?page=1&page_size=' + limit);
+      var json = await res.json();
+      if (!json.success) {
+        alert(json.message || '获取数据失败');
+        return;
+      }
+      var list = [];
+      if (json.after_sales && json.after_sales.length) {
+        list = mapAfterSalesRows(json.after_sales);
+      } else {
+        list = (json.list || []).map(function (r) {
+          return {
+            id: r.id,
+            orderId: r.orderId || '',
+            customerName: r.customerName || '—',
+            customerId: r.customerId || '—',
+            platform: r.platform || '—',
+            type: r.type || '—',
+            status: r.status || '—',
+            amount: r.amount || '0',
+            warehouse: r.warehouse || '—',
+            risk: r.risk || '正常',
+            createTime: r.createTime || '—',
+            reason_category: '',
+            refund_method: ''
+          };
+        });
+      }
+      var rows = filterAfterSalesList(list);
+      if (rows.length === 0) {
+        alert('暂无数据可导出');
+        return;
+      }
+      var headers = ['售后单号','订单号','平台','客户','客户ID','类型','原因','状态','退款金额','退款方式','仓库','风险','创建时间'];
+      var csv = [headers.join(',')];
+      rows.forEach(function (r) {
+        var line = [
+          r.id,
+          r.orderId,
+          r.platform,
+          r.customerName,
+          r.customerId,
+          r.type,
+          r.reason_category || '',
+          r.status,
+          r.amount,
+          r.refund_method || '',
+          r.warehouse,
+          r.risk,
+          r.createTime
+        ].map(function (v) {
+          return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+        });
+        csv.push(line.join(','));
+      });
+      var blob = new Blob(['\ufeff' + csv.join('\n')], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '售后单_' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('导出失败：' + (e.message || '网络错误'));
+    }
+  }
+
+  // 页面加载时获取通知
+  document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    // 每60秒刷新一次通知
+    setInterval(loadNotifications, 60000);
+  });
+
+  // 点击外部关闭通知面板
+  document.addEventListener('click', function(e) {
+    const panel = document.getElementById('notifPanel');
+    const btn = document.getElementById('notifBtn');
+    if (panel && panel.style.display === 'block' &&
+        !panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
+  </script>
+</body>
+</html>

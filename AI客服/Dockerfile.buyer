@@ -1,0 +1,100 @@
+# ============================================================
+# Ruitalk 买方系统 Dockerfile
+# 基于 Python 3.11 slim + 多阶段构建
+#
+# 构建: docker build -f Dockerfile.buyer -t ruitalk/buyer:latest .
+# 运行: docker run -d -p 8001:8001 --env-file .env ruitalk/buyer:latest
+# ============================================================
+FROM python:3.11-slim AS base
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    ca-certificates \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# ============================================================
+# 阶段1：安装依赖
+# ============================================================
+FROM base AS deps
+
+COPY AI客服买方系统/requirements.txt /tmp/requirements.txt
+
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# ============================================================
+# 阶段2：构建
+# ============================================================
+FROM base AS builder
+
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+WORKDIR /app
+
+COPY AI客服买方系统/backend/ /app/
+COPY AI客服买方系统/frontend/ /app/frontend/
+COPY AI客服买方系统/data/ /app/data/ 2>/dev/null || true
+
+RUN find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find /app -name "*.pyc" -delete 2>/dev/null || true
+
+# ============================================================
+# 阶段3：生产镜像
+# ============================================================
+FROM base AS production
+
+RUN groupadd --gid 1000 ruitalk && \
+    useradd --uid 1000 --gid ruitalk --shell /bin/bash --create-home ruitalk
+
+WORKDIR /app
+
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
+
+RUN mkdir -p /app/data /app/logs && \
+    chown -R ruitalk:ruitalk /app
+
+USER ruitalk
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -sf http://localhost:8001/health || exit 1
+
+EXPOSE 8001
+
+ENV BUYER_PORT=8001
+ENV ENVIRONMENT=production
+
+CMD ["python", "-m", "uvicorn", "main_buyer:app", \
+     "--host", "0.0.0.0", "--port", "8001", \
+     "--workers", "2", "--log-level", "info"]
+
+# ============================================================
+# 阶段4：开发镜像
+# ============================================================
+FROM base AS development
+
+WORKDIR /app
+
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+COPY AI客服买方系统/backend/ /app/
+COPY AI客服买方系统/frontend/ /app/frontend/
+
+USER root
+RUN apt-get update && apt-get install -y vim less && rm -rf /var/lib/apt/lists/*
+USER root
+
+EXPOSE 8001
+
+CMD ["python", "-m", "uvicorn", "main_buyer:app", \
+     "--host", "0.0.0.0", "--port", "8001", \
+     "--reload", "--reload-dir", "/app/backend"]

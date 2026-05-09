@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>商户登录 · Ruitalk</title>
+  <style>
+    :root{--bg:#FFFFFF;--bg-subtle:#F9F9F8;--bg-hover:#F4F4F2;--text-1:#34322D;--text-2:#6B6860;--text-3:#9B9890;--border:#E5E7EB;--btn:#1A1A19;--btn-t:#FFF;--radius:12px;--err:#DC2626;}
+    [data-theme="dark"]{--bg:#1A1A18;--bg-subtle:#222220;--bg-hover:#2A2A28;--text-1:#F0EFE8;--text-2:#A8A59C;--text-3:#706D64;--border:rgba(255,255,255,.1);--btn:#F0EFE8;--btn-t:#1A1A18;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;background:var(--bg);color:var(--text-1);min-height:100vh;padding:24px 16px 40px;}
+    .wrap{max-width:440px;margin:0 auto;}
+    .logo{text-align:center;margin-bottom:24px;}
+    .logo h1{font-size:22px;font-weight:700;}
+    .logo p{font-size:13px;color:var(--text-3);margin-top:6px;}
+    .card{background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+    .tabs{display:flex;gap:4px;margin-bottom:18px;background:var(--bg);padding:4px;border-radius:10px;border:1px solid var(--border);}
+    .tabs button{flex:1;border:none;background:transparent;padding:10px;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;border-radius:8px;font-family:inherit;}
+    .tabs button.on{background:var(--btn);color:var(--btn-t);}
+    .subtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+    .subtabs button{font-size:11px;padding:6px 10px;border:1px solid var(--border);background:var(--bg);border-radius:999px;cursor:pointer;color:var(--text-2);font-family:inherit;}
+    .subtabs button.on{border-color:var(--text-1);color:var(--text-1);}
+    label{display:block;font-size:12px;color:var(--text-3);margin-bottom:6px;font-weight:500;}
+    input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text-1);font-family:inherit;margin-bottom:12px;}
+    input:focus{outline:none;border-color:var(--text-2);}
+    .row{display:flex;gap:8px;align-items:flex-start;}
+    .row input{margin-bottom:0;}
+    .row .btn2{flex-shrink:0;padding:10px 14px;white-space:nowrap;}
+    .btn{width:100%;padding:12px;border:none;border-radius:8px;background:var(--btn);color:var(--btn-t);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;}
+    .btn2{background:var(--bg);color:var(--text-1);border:1px solid var(--border);font-size:12px;border-radius:8px;cursor:pointer;font-family:inherit;}
+    .err{color:var(--err);font-size:12px;margin:-4px 0 10px;display:none;}
+    .err.show{display:block;}
+    .hint{font-size:11px;color:var(--text-3);margin-top:14px;text-align:center;line-height:1.6;}
+    .hint a{color:var(--text-1);font-weight:600;}
+    .type-row{display:flex;gap:8px;margin-bottom:14px;}
+    .type-row button{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;font-size:13px;font-family:inherit;color:var(--text-2);}
+    .type-row button.on{border-color:var(--text-1);color:var(--text-1);background:var(--bg-subtle);}
+    .chk{display:flex;align-items:flex-start;gap:8px;margin-top:8px;font-size:11px;color:var(--text-3);}
+    .chk input{width:auto;margin:0;}
+  </style>
+  <script>
+    (function () {
+      function hasSessionCookie() {
+        return document.cookie.split(';').some(function (c) {
+          return c.trim().indexOf('ruitalk_session=active') === 0;
+        });
+      }
+      // 无门户会话 Cookie：清理残留 localStorage，避免仅靠旧令牌「免登录」进系统
+      if (!hasSessionCookie()) {
+        var toClear = [
+          'rtk_merchant_access', 'rtk_merchant_refresh', 'rtk_merchant_user',
+          'rtk_access_token', 'rtk_refresh_token',
+          'admin_access_token', 'admin_refresh_token',
+          'agent_access_token', 'agent_refresh_token', 'agent_info'
+        ];
+        toClear.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+        try { sessionStorage.removeItem('rtk_access_token'); } catch (e) {}
+        return;
+      }
+      // 有 Cookie 且本地仍有任一访问令牌 → 进首页（关闭浏览器后会话 Cookie 消失，需重新登录）
+      var keys = ['rtk_merchant_access', 'rtk_access_token', 'admin_access_token', 'agent_access_token'];
+      var ok = keys.some(function (k) { try { return !!localStorage.getItem(k); } catch (e) { return false; } });
+      if (ok) location.replace('/');
+    })();
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">
+      <h1>Ruitalk</h1>
+      <p>商户注册 / 登录 · 拓岳科技</p>
+    </div>
+    <div class="card">
+      <div class="tabs" id="modeTabs">
+        <button type="button" class="on" data-mode="login">登录</button>
+        <button type="button" data-mode="register">注册</button>
+      </div>
+      <p class="err" id="err"></p>
+
+      <div id="panelLogin">
+        <div class="subtabs" id="loginSub">
+          <button type="button" class="on" data-lt="ppw">手机+密码</button>
+          <button type="button" data-lt="pcode">手机+验证码</button>
+          <button type="button" data-lt="email">邮箱+密码</button>
+        </div>
+        <div id="loginPhoneBlock">
+          <label>手机号</label>
+          <input type="tel" id="phone" maxlength="11" placeholder="11位手机号" inputmode="numeric">
+        </div>
+        <div id="loginCodeRow" style="display:none">
+          <label>验证码</label>
+          <div class="row">
+            <input type="text" id="loginCode" maxlength="6" placeholder="6位" inputmode="numeric">
+            <button type="button" class="btn2" id="btnSmsLogin">获取验证码</button>
+          </div>
+        </div>
+        <div id="loginPwRow">
+          <label>密码</label>
+          <input type="password" id="loginPw" placeholder="密码" autocomplete="current-password">
+        </div>
+        <div id="loginEmailBlock" style="display:none">
+          <label>邮箱</label>
+          <input type="email" id="email" placeholder="name@company.com" autocomplete="email">
+        </div>
+        <button type="button" class="btn" id="btnDoLogin">登 录</button>
+      </div>
+
+      <div id="panelReg" style="display:none">
+        <div class="type-row">
+          <button type="button" class="on" id="btInd">个体户</button>
+          <button type="button" id="btCo">公司企业</button>
+        </div>
+        <div class="subtabs" id="regSub">
+          <button type="button" class="on" data-rt="phone">手机号注册</button>
+          <button type="button" data-rt="email">邮箱注册</button>
+        </div>
+        <div id="regPhoneWrap">
+          <label>手机号</label>
+          <input type="tel" id="rphone" maxlength="11" placeholder="11位手机号" inputmode="numeric">
+          <label>短信验证码</label>
+          <div class="row">
+            <input type="text" id="rcode" maxlength="6" placeholder="6位" inputmode="numeric">
+            <button type="button" class="btn2" id="btnSmsReg">获取验证码</button>
+          </div>
+        </div>
+        <div id="regEmailWrap" style="display:none">
+          <label>邮箱</label>
+          <input type="email" id="remail" placeholder="name@company.com">
+          <label>邮箱验证码</label>
+          <div class="row">
+            <input type="text" id="recode" maxlength="6" placeholder="6位" inputmode="numeric">
+            <button type="button" class="btn2" id="btnEmailReg">获取验证码</button>
+          </div>
+        </div>
+        <label>设置密码（至少6位）</label>
+        <input type="password" id="rpw1" placeholder="密码" autocomplete="new-password">
+        <label>确认密码</label>
+        <input type="password" id="rpw2" placeholder="再次输入" autocomplete="new-password">
+        <label id="lblCo">店铺名称</label>
+        <input type="text" id="rcompany" placeholder="店铺或公司全称">
+        <label>联系人（选填）</label>
+        <input type="text" id="rcontact" placeholder="联系人姓名">
+        <label class="chk"><input type="checkbox" id="ragree"> 我已阅读并同意《商户服务协议》与《隐私政策》</label>
+        <button type="button" class="btn" id="btnDoReg">立即注册</button>
+      </div>
+
+      <p class="hint">超级管理员 / 运营请使用 <a href="/admin/login.html">管理后台登录</a></p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // 与页面同源请求 API；若用本地文件打开页面则回退到本机卖方端口（需后端已启动）
+      var API = (function () {
+        try {
+          var o = window.location.origin;
+          if (o && /^https?:\/\//i.test(o)) return o.replace(/\/$/, '') + '/api/v1/merchant';
+        } catch (e0) {}
+        return 'http://127.0.0.1:8000/api/v1/merchant';
+      })();
+      var cdLogin = 0, cdReg = 0, tLogin, tReg;
+
+      function showErr(t) {
+        var e = document.getElementById('err');
+        e.textContent = t || '';
+        e.classList.toggle('show', !!t);
+      }
+      function fetchFailMsg() {
+        return '无法连接后端：请先启动卖方终端（需监听 http://127.0.0.1:8000）。在项目根目录运行 python start_all.py，或双击「卖家系统启动.bat」，然后用浏览器打开 http://127.0.0.1:8000/merchant-auth.html（勿单独双击本地 HTML）。';
+      }
+      function saveSession(d) {
+        var data = d.data || d;
+        if (data.access_token) localStorage.setItem('rtk_merchant_access', data.access_token);
+        if (data.refresh_token) localStorage.setItem('rtk_merchant_refresh', data.refresh_token);
+        if (data.merchant) localStorage.setItem('rtk_merchant_user', JSON.stringify(data.merchant));
+        // 内部号 DEV_PHONE_USERS：服务端同时下发与 dev_{phone} 一致的后台 JWT，否则八个模块无数据
+        if (data.admin_access_token) localStorage.setItem('admin_access_token', data.admin_access_token);
+        if (data.admin_refresh_token) localStorage.setItem('admin_refresh_token', data.admin_refresh_token);
+        // 会话级 Cookie：关闭浏览器后需重新登录（勿设 max-age，避免长期免登录）
+        document.cookie = 'ruitalk_session=active; path=/; SameSite=Lax';
+      }
+
+      var mode = 'login';
+      document.getElementById('modeTabs').addEventListener('click', function (ev) {
+        var b = ev.target.closest('button[data-mode]');
+        if (!b) return;
+        mode = b.getAttribute('data-mode');
+        [].forEach.call(document.querySelectorAll('#modeTabs button'), function (x) { x.classList.toggle('on', x === b); });
+        document.getElementById('panelLogin').style.display = mode === 'login' ? 'block' : 'none';
+        document.getElementById('panelReg').style.display = mode === 'register' ? 'block' : 'none';
+        showErr('');
+      });
+
+      var loginType = 'ppw';
+      document.getElementById('loginSub').addEventListener('click', function (ev) {
+        var b = ev.target.closest('button[data-lt]');
+        if (!b) return;
+        loginType = b.getAttribute('data-lt');
+        [].forEach.call(document.querySelectorAll('#loginSub button'), function (x) { x.classList.toggle('on', x === b); });
+        document.getElementById('loginPhoneBlock').style.display = loginType === 'email' ? 'none' : 'block';
+        document.getElementById('loginEmailBlock').style.display = loginType === 'email' ? 'block' : 'none';
+        document.getElementById('loginCodeRow').style.display = loginType === 'pcode' ? 'block' : 'none';
+        document.getElementById('loginPwRow').style.display = (loginType === 'ppw' || loginType === 'email') ? 'block' : 'none';
+        showErr('');
+      });
+
+      var biz = 'individual';
+      document.getElementById('btInd').addEventListener('click', function () {
+        biz = 'individual';
+        document.getElementById('btInd').classList.add('on');
+        document.getElementById('btCo').classList.remove('on');
+        document.getElementById('lblCo').textContent = '店铺名称';
+        document.getElementById('rcompany').placeholder = '请输入店铺名称';
+      });
+      document.getElementById('btCo').addEventListener('click', function () {
+        biz = 'company';
+        document.getElementById('btCo').classList.add('on');
+        document.getElementById('btInd').classList.remove('on');
+        document.getElementById('lblCo').textContent = '公司名称';
+        document.getElementById('rcompany').placeholder = '请输入公司全称';
+      });
+
+      var regRoute = 'phone';
+      document.getElementById('regSub').addEventListener('click', function (ev) {
+        var b = ev.target.closest('button[data-rt]');
+        if (!b) return;
+        regRoute = b.getAttribute('data-rt');
+        [].forEach.call(document.querySelectorAll('#regSub button'), function (x) { x.classList.toggle('on', x === b); });
+        document.getElementById('regPhoneWrap').style.display = regRoute === 'phone' ? 'block' : 'none';
+        document.getElementById('regEmailWrap').style.display = regRoute === 'email' ? 'block' : 'none';
+      });
+
+      function tickCd(btn, sec, setter) {
+        setter(sec);
+        clearInterval(btn === 'login' ? tLogin : tReg);
+        var id = setInterval(function () {
+          sec--;
+          setter(sec);
+          if (sec <= 0) clearInterval(id);
+        }, 1000);
+        if (btn === 'login') tLogin = id; else tReg = id;
+      }
+
+      document.getElementById('btnSmsLogin').addEventListener('click', async function () {
+        var phone = document.getElementById('phone').value.replace(/\D/g, '');
+        if (!/^1\d{10}$/.test(phone)) { showErr('请输入正确手机号'); return; }
+        if (cdLogin > 0) return;
+        showErr('');
+        try {
+          var r = await fetch(API + '/send-sms-code', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: phone, action: 'login' }) });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok) { showErr(j.detail || j.message || '发送失败'); return; }
+          if (j.debug_code) alert('演示模式验证码：' + j.debug_code);
+          tickCd('login', 60, function (s) { cdLogin = s; document.getElementById('btnSmsLogin').disabled = s > 0; document.getElementById('btnSmsLogin').textContent = s > 0 ? s + '秒' : '获取验证码'; });
+        } catch (e) { showErr(fetchFailMsg()); }
+      });
+
+      document.getElementById('btnSmsReg').addEventListener('click', async function () {
+        var phone = document.getElementById('rphone').value.replace(/\D/g, '');
+        if (!/^1\d{10}$/.test(phone)) { showErr('请输入正确手机号'); return; }
+        if (cdReg > 0) return;
+        showErr('');
+        try {
+          var r = await fetch(API + '/send-sms-code', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: phone, action: 'register' }) });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok) { showErr(j.detail || j.message || '发送失败'); return; }
+          if (j.debug_code) alert('演示模式验证码：' + j.debug_code);
+          tickCd('reg', 60, function (s) { cdReg = s; document.getElementById('btnSmsReg').disabled = s > 0; document.getElementById('btnSmsReg').textContent = s > 0 ? s + '秒' : '获取验证码'; });
+        } catch (e) { showErr(fetchFailMsg()); }
+      });
+
+      document.getElementById('btnEmailReg').addEventListener('click', async function () {
+        var email = document.getElementById('remail').value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('邮箱格式不正确'); return; }
+        if (cdReg > 0) return;
+        showErr('');
+        try {
+          var r = await fetch(API + '/send-email-code', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, action: 'register' }) });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok) { showErr(j.detail || j.message || '发送失败'); return; }
+          if (j.debug_code) alert('演示模式验证码：' + j.debug_code);
+          tickCd('reg', 60, function (s) { cdReg = s; document.getElementById('btnEmailReg').disabled = s > 0; document.getElementById('btnEmailReg').textContent = s > 0 ? s + '秒' : '获取验证码'; });
+        } catch (e) { showErr(fetchFailMsg()); }
+      });
+
+      document.getElementById('btnDoLogin').addEventListener('click', async function () {
+        showErr('');
+        var body, url;
+        if (loginType === 'ppw') {
+          var p = document.getElementById('phone').value.replace(/\D/g, '');
+          var pw = document.getElementById('loginPw').value;
+          if (!/^1\d{10}$/.test(p)) { showErr('手机号不正确'); return; }
+          if (!pw) { showErr('请输入密码'); return; }
+          url = API + '/login/phone';
+          body = { phone: p, password: pw };
+        } else if (loginType === 'pcode') {
+          var p2 = document.getElementById('phone').value.replace(/\D/g, '');
+          var c = document.getElementById('loginCode').value.trim();
+          if (!/^1\d{10}$/.test(p2)) { showErr('手机号不正确'); return; }
+          if (!/^\d{6}$/.test(c)) { showErr('验证码6位数字'); return; }
+          url = API + '/login/phone-code';
+          body = { phone: p2, code: c };
+        } else {
+          var em = document.getElementById('email').value.trim();
+          var pw2 = document.getElementById('loginPw').value;
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { showErr('邮箱不正确'); return; }
+          if (!pw2) { showErr('请输入密码'); return; }
+          url = API + '/login/email';
+          body = { email: em, password: pw2 };
+        }
+        var btn = document.getElementById('btnDoLogin');
+        btn.disabled = true;
+        try {
+          var r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok || !j.success) { showErr(j.detail || j.message || '登录失败'); btn.disabled = false; return; }
+          saveSession(j);
+          location.href = '/';
+        } catch (e) { showErr(fetchFailMsg()); btn.disabled = false; }
+      });
+
+      document.getElementById('btnDoReg').addEventListener('click', async function () {
+        showErr('');
+        if (!document.getElementById('ragree').checked) { showErr('请勾选同意服务条款'); return; }
+        var pw1 = document.getElementById('rpw1').value;
+        var pw2 = document.getElementById('rpw2').value;
+        if (pw1.length < 6) { showErr('密码至少6位'); return; }
+        if (pw1 !== pw2) { showErr('两次密码不一致'); return; }
+        var co = document.getElementById('rcompany').value.trim();
+        if (co.length < 2) { showErr('请填写店铺/公司名称'); return; }
+        var ct = document.getElementById('rcontact').value.trim();
+        var url, body;
+        if (regRoute === 'phone') {
+          var p = document.getElementById('rphone').value.replace(/\D/g, '');
+          var code = document.getElementById('rcode').value.trim();
+          if (!/^1\d{10}$/.test(p)) { showErr('手机号不正确'); return; }
+          if (!/^\d{6}$/.test(code)) { showErr('验证码6位数字'); return; }
+          url = API + '/register/phone';
+          body = { phone: p, code: code, password: pw1, company_name: co, contact_name: ct, business_type: biz };
+        } else {
+          var em = document.getElementById('remail').value.trim();
+          var ec = document.getElementById('recode').value.trim();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { showErr('邮箱不正确'); return; }
+          if (!/^\d{6}$/.test(ec)) { showErr('验证码6位数字'); return; }
+          url = API + '/register/email';
+          body = { email: em, code: ec, password: pw1, company_name: co, contact_name: ct, business_type: biz };
+        }
+        var btn = document.getElementById('btnDoReg');
+        btn.disabled = true;
+        try {
+          var r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok || !j.success) { showErr(j.detail || j.message || '注册失败'); btn.disabled = false; return; }
+          saveSession(j);
+          location.href = '/';
+        } catch (e) { showErr(fetchFailMsg()); btn.disabled = false; }
+      });
+    })();
+  </script>
+</body>
+</html>

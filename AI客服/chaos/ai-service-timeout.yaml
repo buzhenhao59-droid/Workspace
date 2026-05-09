@@ -1,0 +1,38 @@
+# ============================================================
+# Chaos Experiment: ai-service-timeout
+# ============================================================
+#
+# 应用方法:
+#   kubectl apply -f chaos/ai-service-timeout.yaml
+# 查看状态:
+#   kubectl get workflow ai-service-timeout-workflow -n ruitalk
+# 停止实验:
+#   kubectl delete -f chaos/ai-service-timeout.yaml
+#
+
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  experiment: ai-service-timeout
+  injected_delay: 10000ms
+  expected_circuit_breaker: OPEN after 5 failures
+spec:
+  action: delay
+  mode: all
+  duration: 120s
+  delay:
+    latency: 10000ms
+    correlation: '100'
+  target:
+    selector:
+      namespaces:
+      - ruitalk
+      labelSelectors:
+        app: ruitalk-seller
+  selector:
+    namespaces:
+    - ruitalk
+    labelSelectors:
+      app: ruitalk-seller
+  externalTargets:
+  - api.deepseek.com

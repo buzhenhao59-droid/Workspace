@@ -1,0 +1,13 @@
+# Grafana 仪表板自动配置
+apiVersion: 1
+
+providers:
+  - name: 'Ruitalk'
+    orgId: 1
+    folder: 'Ruitalk'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

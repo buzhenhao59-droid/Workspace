@@ -1,0 +1,17 @@
+# 本地演示用 Neo4j 5.x，与卖方终端 database.Neo4jConnection / 全部订单 查询模型一致
+# 启动: 在本目录执行 docker compose up -d
+# 浏览器控制台: http://127.0.0.1:7474 （用户 neo4j / 见下方 NEO4J_AUTH）
+services:
+  neo4j:
+    image: neo4j:5.16-community
+    container_name: ruitalk-neo4j-demo
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/ruitalk_demo_2026
+    volumes:
+      - neo4j_demo_data:/data
+
+volumes:
+  neo4j_demo_data:

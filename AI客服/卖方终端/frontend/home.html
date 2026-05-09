@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <!-- 未登录则立即跳转商户登录页：须同时有门户会话 Cookie + 本地令牌 -->
+  <script>
+    (function () {
+      function hasPortalCookie() {
+        return document.cookie.split(';').some(function (c) {
+          return c.trim().indexOf('ruitalk_session=active') === 0;
+        });
+      }
+      var p = location.pathname || '';
+      var onPortal = (p === '/' || p === '/home' || p === '/home.html');
+      if (!onPortal) return;
+
+      if (!hasPortalCookie()) {
+        location.replace('/merchant-auth.html');
+        return;
+      }
+
+      var _portalKeys = ['rtk_merchant_access', 'rtk_access_token', 'admin_access_token', 'agent_access_token'];
+      var _hasToken = _portalKeys.some(function (k) { try { return !!localStorage.getItem(k); } catch (e) { return false; } });
+      if (!_hasToken) {
+        location.replace('/merchant-auth.html');
+        return;
+      }
+
+      try {
+        var at = localStorage.getItem('admin_access_token');
+        if (at) sessionStorage.setItem('rtk_access_token', at);
+      } catch (_e) {}
+    })();
+  </script>
+  <title>拓岳科技 · Ruitalk</title>
+  <style>
+    /* ─── 设计令牌（Manus 风格）─── */
+    :root {
+      --bg:           #FFFFFF;
+      --bg-subtle:    #F9F9F8;
+      --bg-hover:     #F4F4F2;
+      --surface:      #FFFFFF;
+      --text-1:       #34332D;
+      --text-2:       #6B6860;
+      --text-3:       #9B9890;
+      --text-4:       #C4C1B8;
+      --border:       #E5E7EB;
+      --border-soft:  rgba(0,0,0,0.06);
+      --btn-primary-bg:   #1A1A19;
+      --btn-primary-text: #FFFFFF;
+      --btn-ghost-bg:     transparent;
+      --btn-ghost-text:   #34332D;
+      --btn-ghost-border: rgba(0,0,0,0.10);
+      --radius-sm:   8px;
+      --radius-md:   12px;
+      --radius-lg:   22px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07);
+    }
+    [data-theme="dark"] {
+      --bg:           #1A1A18;
+      --bg-subtle:    #222220;
+      --bg-hover:     #2A2A28;
+      --surface:      #242422;
+      --text-1:       #F0EFE8;
+      --text-2:       #A8A59C;
+      --text-3:       #706D64;
+      --text-4:       #504D46;
+      --border:       rgba(255,255,255,0.08);
+      --border-soft:  rgba(255,255,255,0.05);
+      --btn-primary-bg:   #F0EFE8;
+      --btn-primary-text: #1A1A18;
+      --btn-ghost-bg:     transparent;
+      --btn-ghost-text:   #A8A59C;
+      --btn-ghost-border: rgba(255,255,255,0.10);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                   "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+      font-size: 15px; line-height: 1.6;
+      background: var(--bg); color: var(--text-1);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background .3s, color .3s;
+    }
+
+    /* ─── 顶部导航 ─── */
+    .nav {
+      flex-shrink: 0;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      transition: background .3s, border-color .3s;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 15px; font-weight: 600; color: var(--text-1);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    /* Manus 风格 logo mark：有机形状 SVG */
+    .nav-logo-mark {
+      width: 30px; height: 30px;
+      background: var(--btn-primary-bg);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .3s;
+      flex-shrink: 0;
+    }
+    .nav-logo-mark svg { width: 17px; height: 17px; }
+    .nav-center { text-align: center; position: absolute; left: 50%; transform: translateX(-50%); }
+    .nav-title { font-size: 15px; font-weight: 600; color: var(--text-1); letter-spacing: 0.02em; }
+    .nav-sub { font-size: 11px; color: var(--text-3); }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      height: 32px; padding: 0 14px;
+      background: var(--btn-ghost-bg);
+      border: 1px solid var(--btn-ghost-border);
+      border-radius: var(--radius-sm);
+      color: var(--btn-ghost-text);
+      font-size: 13px; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center;
+      transition: background .15s;
+    }
+    .btn-ghost:hover { background: var(--bg-hover); }
+    .btn-switch-account {
+      height: 32px; padding: 0 14px;
+      background: var(--btn-ghost-bg);
+      border: 1px solid var(--btn-ghost-border);
+      border-radius: var(--radius-sm);
+      color: var(--btn-ghost-text);
+      font-size: 13px; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center;
+      gap: 5px;
+      transition: background .15s;
+    }
+    .btn-switch-account:hover { background: var(--bg-hover); }
+    .btn-switch-account svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ─── 更换内部账号弹层 ─── */
+    .acct-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,.42); align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .acct-overlay.show { display: flex; }
+    .acct-dialog {
+      width: 100%; max-width: 400px;
+      background: var(--surface); color: var(--text-1);
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md); padding: 22px 22px 18px;
+    }
+    .acct-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .acct-desc { font-size: 12px; color: var(--text-3); line-height: 1.55; margin-bottom: 16px; }
+    .acct-loading { font-size: 13px; color: var(--text-2); padding: 8px 0; }
+    .acct-field-label { font-size: 12px; color: var(--text-3); font-weight: 500; margin-bottom: 8px; display: block; }
+    .acct-choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .acct-choice {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer; font-size: 13px; color: var(--text-1);
+      background: var(--bg-subtle); transition: border-color .15s, background .15s;
+    }
+    .acct-choice:hover { border-color: var(--text-4); background: var(--bg-hover); }
+    .acct-choice input { flex-shrink: 0; accent-color: var(--btn-primary-bg); }
+    .acct-input {
+      width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--text-1); margin-bottom: 10px;
+    }
+    .acct-input:focus { outline: none; border-color: var(--text-3); }
+    .acct-err { font-size: 12px; color: #DC2626; min-height: 18px; margin-bottom: 10px; display: none; }
+    [data-theme="dark"] .acct-err { color: #FCA5A5; }
+    .acct-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .acct-btn-primary {
+      width: 100%; padding: 11px; border: none; border-radius: var(--radius-sm);
+      background: var(--btn-primary-bg); color: var(--btn-primary-text);
+      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+    }
+    .acct-btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+    .acct-btn-ghost {
+      width: 100%; padding: 9px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: transparent; color: var(--text-2); font-size: 13px; font-family: inherit; cursor: pointer;
+    }
+    .acct-btn-ghost:hover { background: var(--bg-hover); color: var(--text-1); }
+
+    /* ─── 主内容区 ─── */
+    .main {
+      padding: 48px 32px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: calc(100vh - 56px);
+      position: relative; z-index: 10;
+    }
+
+    /* ─── 欢迎语 ─── */
+    .welcome-area {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .welcome-eyebrow {
+      font-size: 12px; color: var(--text-4);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .welcome-title {
+      font-size: 22px; font-weight: 500; color: var(--text-1);
+      letter-spacing: -0.01em;
+    }
+
+    /* ─── 图标网格（Manus 简约风格）─── */
+    .icons-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    /* ─── 图标卡片（Manus 卡片风格）─── */
+    .icon-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: var(--text-1);
+      transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .icon-card:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-4);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .icon-card:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ─── 图标容器（纯 SVG，无 emoji）─── */
+    .icon-wrap {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+    .icon-wrap svg {
+      width: 22px; height: 22px;
+      color: var(--text-2);
+      transition: color .15s;
+    }
+    .icon-card:hover .icon-wrap {
+      background: var(--bg);
+    }
+    .icon-card:hover .icon-wrap svg {
+      color: var(--text-1);
+    }
+
+    /* ─── 图标标签 ─── */
+    .icon-label {
+      font-size: 12px;
+      color: var(--text-2);
+      text-align: center;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    /* ─── 底部文案 ─── */
+    .footer-quote {
+      margin-top: 48px;
+      font-size: 12px;
+      color: var(--text-4);
+      text-align: center;
+      max-width: 420px;
+      line-height: 1.7;
+      letter-spacing: 0.02em;
+    }
+
+    /* ─── 响应式 ─── */
+    @media (max-width: 600px) {
+      .nav { padding: 0 16px; }
+      .main { padding: 28px 16px 40px; }
+      .icons-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        max-width: 340px;
+      }
+      .icon-card { padding: 16px 8px 12px; }
+      .icon-wrap { width: 40px; height: 40px; }
+      .icon-wrap svg { width: 20px; height: 20px; }
+      .icon-label { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <nav class="nav">
+    <a href="/" class="nav-logo">
+      <!-- Manus 风格 logo：有机章鱼/手形 SVG -->
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color: var(--btn-primary-text)"/>
+        </svg>
+      </div>
+      <span>拓岳科技</span>
+    </a>
+    <div class="nav-center">
+      <div class="nav-title">Ruitalk</div>
+      <div class="nav-sub" id="datetimeDisplay"></div>
+    </div>
+    <div class="nav-right">
+      <button class="btn-ghost" id="themeBtn">深色</button>
+      <button type="button" class="btn-switch-account" id="switchAccountBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        更换账号
+      </button>
+    </div>
+  </nav>
+
+  <!-- 主内容 -->
+  <main class="main">
+    <div class="welcome-area">
+      <p class="welcome-eyebrow">Ruitalk · 智能客服平台</p>
+      <h1 class="welcome-title">今天想处理什么？</h1>
+    </div>
+
+    <div class="icons-grid">
+
+      <!-- 坐席工作台：必须进入 agent_console（人工接待界面），勿链到消息中心后台页 -->
+      <a class="icon-card" href="/admin/agent_console.html" title="坐席工作台">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <span class="icon-label">坐席工作台</span>
+      </a>
+
+      <!-- 全部订单 -->
+      <a class="icon-card" href="/admin/orders.html" title="全部订单">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <span class="icon-label">全部订单</span>
+      </a>
+
+      <!-- 查询客户（仅此入口进入客户档案检索，其它页面不再放重复按钮） -->
+      <a class="icon-card" href="/admin/customer-query" title="查询客户">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <span class="icon-label">查询客户</span>
+      </a>
+
+      <!-- 工具集成 -->
+      <a class="icon-card" href="/admin/dashboard-overview" title="工具集成">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <span class="icon-label">工具集成</span>
+      </a>
+
+      <!-- 客户评价 -->
+      <a class="icon-card" href="/admin/evaluation.html" title="客户评价">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <span class="icon-label">客户评价</span>
+      </a>
+
+      <!-- 售前处理 -->
+      <a class="icon-card" href="/admin/pre-sale-notes.html" title="售前处理">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <span class="icon-label">售前处理</span>
+      </a>
+
+      <!-- 售后服务 -->
+      <a class="icon-card" href="/admin/after-sales.html" title="售后服务">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <span class="icon-label">售后服务</span>
+      </a>
+
+      <!-- 店铺管理 -->
+      <a class="icon-card" href="/admin/shop-manager.html" title="店铺管理">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <span class="icon-label">店铺管理</span>
+      </a>
+
+    </div>
+
+    <p class="footer-quote">轻松一点，生意更稳。一站式智能客服，为跨境年轻人准备。</p>
+  </main>
+
+  <div id="acctOverlay" class="acct-overlay" aria-hidden="true">
+    <div class="acct-dialog" role="dialog" aria-modal="true" aria-labelledby="acctTitle">
+      <h2 id="acctTitle" class="acct-title">更换内部账号</h2>
+      <p class="acct-desc">在超级管理员与运营账号之间切换，请输入目标账号的密码。</p>
+      <p class="acct-loading" id="acctLoading">加载中…</p>
+      <div id="acctFormWrap" style="display:none">
+        <span class="acct-field-label">登录为</span>
+        <div id="acctChoices" class="acct-choices"></div>
+        <label class="acct-field-label" for="acctPwd">密码</label>
+        <input type="password" id="acctPwd" class="acct-input" autocomplete="current-password" placeholder="请输入密码">
+        <p class="acct-err" id="acctErr"></p>
+        <div class="acct-actions">
+          <button type="button" class="acct-btn-primary" id="acctSubmit">登录并切换</button>
+          <button type="button" class="acct-btn-ghost" id="acctCancel">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function updateDateTime() {
+        var el = document.getElementById('datetimeDisplay');
+        if (!el) return;
+        var d = new Date();
+        var week = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+        el.textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 星期' + week;
+      }
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+
+      var btn = document.getElementById('themeBtn');
+      function applyTheme(t) {
+        if (!btn) return;
+        if (t === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          btn.textContent = '浅色';
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          btn.textContent = '深色';
+        }
+      }
+      if (btn) {
+        applyTheme(localStorage.getItem('theme') || 'light');
+        btn.addEventListener('click', function () {
+          var cur = document.documentElement.getAttribute('data-theme');
+          var next = cur === 'dark' ? 'light' : 'dark';
+          applyTheme(next);
+          localStorage.setItem('theme', next);
+        });
+      }
+
+      // 更换账号：超级管理员 ↔ 运营（走 /api/admin/login），非商户登录页
+      var acctOverlay = document.getElementById('acctOverlay');
+      var acctLoading = document.getElementById('acctLoading');
+      var acctFormWrap = document.getElementById('acctFormWrap');
+      var acctChoices = document.getElementById('acctChoices');
+      var acctPwd = document.getElementById('acctPwd');
+      var acctErr = document.getElementById('acctErr');
+      var acctSubmit = document.getElementById('acctSubmit');
+      var acctCancel = document.getElementById('acctCancel');
+
+      function jwtAdminUsername() {
+        try {
+          var t = localStorage.getItem('admin_access_token');
+          if (!t) return null;
+          var parts = t.split('.');
+          if (parts.length < 2) return null;
+          var b = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          while (b.length % 4) b += '=';
+          var json = decodeURIComponent(escape(atob(b)));
+          var p = JSON.parse(json);
+          return p.username || p.sub || null;
+        } catch (e) { return null; }
+      }
+
+      function openAcctOverlay() {
+        if (!acctOverlay) return;
+        acctOverlay.classList.add('show');
+        acctOverlay.setAttribute('aria-hidden', 'false');
+        if (acctLoading) acctLoading.style.display = 'block';
+        if (acctFormWrap) acctFormWrap.style.display = 'none';
+        if (acctErr) { acctErr.style.display = 'none'; acctErr.textContent = ''; }
+        if (acctPwd) acctPwd.value = '';
+      }
+
+      function closeAcctOverlay() {
+        if (!acctOverlay) return;
+        acctOverlay.classList.remove('show');
+        acctOverlay.setAttribute('aria-hidden', 'true');
+      }
+
+      function fillAcctChoices(items) {
+        if (!acctChoices) return;
+        acctChoices.textContent = '';
+        var cur = jwtAdminUsername();
+        var prefer = null;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].username !== cur) { prefer = items[i].username; break; }
+        }
+        if (!prefer && items.length) prefer = items[0].username;
+        for (var j = 0; j < items.length; j++) {
+          (function (it) {
+            var lab = document.createElement('label');
+            lab.className = 'acct-choice';
+            var inp = document.createElement('input');
+            inp.type = 'radio';
+            inp.name = 'portalAcct';
+            inp.value = it.username;
+            if (it.username === prefer) inp.checked = true;
+            var span = document.createElement('span');
+            span.textContent = (it.label || it.username) + '（' + it.username + '）';
+            lab.appendChild(inp);
+            lab.appendChild(span);
+            acctChoices.appendChild(lab);
+          })(items[j]);
+        }
+      }
+
+      function selectedAcctUsername() {
+        var r = document.querySelector('input[name="portalAcct"]:checked');
+        return r ? r.value : null;
+      }
+
+      var swBtn = document.getElementById('switchAccountBtn');
+      if (swBtn && acctOverlay) {
+        swBtn.addEventListener('click', function () {
+          openAcctOverlay();
+          fetch('/api/admin/login-identities')
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (data) {
+              var items = (data && data.items) || [];
+              if (!data.success || !items.length) {
+                closeAcctOverlay();
+                window.location.href = '/admin/login.html';
+                return;
+              }
+              if (acctLoading) acctLoading.style.display = 'none';
+              fillAcctChoices(items);
+              if (acctFormWrap) acctFormWrap.style.display = 'block';
+              if (acctPwd) { acctPwd.focus(); }
+            })
+            .catch(function () {
+              closeAcctOverlay();
+              window.location.href = '/admin/login.html';
+            });
+        });
+      }
+
+      if (acctCancel) {
+        acctCancel.addEventListener('click', closeAcctOverlay);
+      }
+      if (acctOverlay) {
+        acctOverlay.addEventListener('click', function (ev) {
+          if (ev.target === acctOverlay) closeAcctOverlay();
+        });
+      }
+
+      if (acctSubmit && acctPwd) {
+        acctSubmit.addEventListener('click', function () {
+          var un = selectedAcctUsername();
+          var pwd = acctPwd.value;
+          if (!un) { if (acctErr) { acctErr.textContent = '请选择账号'; acctErr.style.display = 'block'; } return; }
+          if (!pwd) { if (acctErr) { acctErr.textContent = '请输入密码'; acctErr.style.display = 'block'; } return; }
+          if (acctErr) { acctErr.style.display = 'none'; acctErr.textContent = ''; }
+          acctSubmit.disabled = true;
+          fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: un, password: pwd })
+          })
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (data) {
+              acctSubmit.disabled = false;
+              if (!data.success) {
+                if (acctErr) {
+                  acctErr.textContent = data.message || '登录失败';
+                  acctErr.style.display = 'block';
+                }
+                return;
+              }
+              var pack = data.data || data;
+              var tok = pack.access_token;
+              var refr = pack.refresh_token;
+              try {
+                if (tok) localStorage.setItem('admin_access_token', tok);
+                if (refr) localStorage.setItem('admin_refresh_token', refr);
+                localStorage.removeItem('rtk_merchant_access');
+                localStorage.removeItem('rtk_merchant_refresh');
+                localStorage.removeItem('rtk_merchant_user');
+                document.cookie = 'ruitalk_session=active; path=/; SameSite=Lax';
+              } catch (e) {}
+              closeAcctOverlay();
+              window.location.reload();
+            })
+            .catch(function () {
+              acctSubmit.disabled = false;
+              if (acctErr) {
+                acctErr.textContent = '网络错误';
+                acctErr.style.display = 'block';
+              }
+            });
+        });
+        acctPwd.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter') acctSubmit.click();
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

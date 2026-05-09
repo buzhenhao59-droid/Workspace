@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; font-size: 24px; }
+        .error { color: red; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <h1>消息中心测试</h1>
+    <div id="status"></div>
+    <script>
+        var status = document.getElementById('status');
+        status.innerHTML = '<p class="success">✅ JavaScript 运行正常!</p>';
+        
+        // 测试 API 调用
+        fetch('/api/message-center/health')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                status.innerHTML += '<p class="success">✅ API 调用成功: ' + JSON.stringify(d) + '</p>';
+            })
+            .catch(function(e) {
+                status.innerHTML += '<p class="error">❌ API 调用失败: ' + e.message + '</p>';
+            });
+    </script>
+</body>
+</html>

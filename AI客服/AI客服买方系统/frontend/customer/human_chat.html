@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=/entry">
+  <title>跳转中...</title>
+</head>
+<body>
+  <p>正在跳转到聊天页面...</p>
+  <script>
+    // 保持 session_id 参数
+    var sessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (sessionId) {
+      window.location.href = '/entry?session_id=' + sessionId;
+    } else {
+      window.location.href = '/entry';
+    }
+  </script>
+</body>
+</html>

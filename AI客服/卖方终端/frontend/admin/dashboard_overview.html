@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>数据看板 · Ruitalk</title>
+  <script>(function(){function okCookie(){return document.cookie.split(';').some(function(c){return c.trim().indexOf('ruitalk_session=active')===0});}var t=!1;try{t=!!(localStorage.getItem('rtk_merchant_access')||localStorage.getItem('rtk_access_token')||localStorage.getItem('admin_access_token')||localStorage.getItem('agent_access_token'));}catch(e){}if(!okCookie()||!t)location.replace('/merchant-auth.html');else try{var a=localStorage.getItem('admin_access_token');if(a)sessionStorage.setItem('rtk_access_token',a);else{var m=localStorage.getItem('rtk_merchant_access');if(m)sessionStorage.setItem('rtk_access_token',m);else{var r=localStorage.getItem('rtk_access_token');if(r)sessionStorage.setItem('rtk_access_token',r);}}}catch(e){}})();</script>
+  <style>
+    :root {
+      --bg:           #FFFFFF;
+      --bg-subtle:    #F9F9F8;
+      --bg-hover:     #F4F4F2;
+      --surface:      #FFFFFF;
+      --text-1:       #34332D;
+      --text-2:       #6B6860;
+      --text-3:       #9B9890;
+      --text-4:       #C4C1B8;
+      --border:       #E5E7EB;
+      --border-soft:  rgba(0,0,0,0.06);
+      --btn-primary-bg:   #1A1A19;
+      --btn-primary-text: #FFFFFF;
+      --sidebar-w:    200px;
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --shadow-sm:    0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md:    0 4px 16px rgba(0,0,0,0.07);
+    }
+    [data-theme="dark"] {
+      --bg:           #1A1A18;
+      --bg-subtle:    #222220;
+      --bg-hover:     #2A2A28;
+      --surface:      #242422;
+      --text-1:       #F0EFE8;
+      --text-2:       #A8A59C;
+      --text-3:       #706D64;
+      --text-4:       #504D46;
+      --border:       rgba(255,255,255,0.08);
+      --border-soft:  rgba(255,255,255,0.05);
+      --btn-primary-bg:   #F0EFE8;
+      --btn-primary-text: #1A1A18;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                   "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      background: var(--bg); color: var(--text-1);
+      height: 100%; -webkit-font-smoothing: antialiased;
+      transition: background .3s, color .3s;
+    }
+
+    /* ─── 整体布局 ─── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ─── 左侧侧边栏 ─── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-subtle);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 100;
+      transition: background .3s, border-color .3s;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 9px;
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text-1);
+    }
+    .sidebar-logo-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--btn-primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .sidebar-logo-mark svg { width: 15px; height: 15px; }
+    .sidebar-logo-text { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+    .sidebar-nav { flex: 1; padding: 8px 8px; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 13px;
+      transition: background .15s, color .15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-1); }
+    .nav-item.active { background: var(--bg-hover); color: var(--text-1); font-weight: 500; }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .sidebar-footer {
+      padding: 12px 8px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sidebar-footer-btn {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-3);
+      text-decoration: none;
+      font-size: 12px;
+      background: none; border: none; font-family: inherit;
+      cursor: pointer; width: 100%; text-align: left;
+      transition: background .15s, color .15s;
+    }
+    .sidebar-footer-btn:hover { background: var(--bg-hover); color: var(--text-1); }
+    .sidebar-footer-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ─── 右侧主体 ─── */
+    .main-wrap {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ─── 顶部栏 ─── */
+    .topbar {
+      height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+      transition: background .3s, border-color .3s;
+    }
+    .topbar-title {
+      font-size: 15px; font-weight: 600; color: var(--text-1);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .topbar-title svg { width: 16px; height: 16px; color: var(--text-3); }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      height: 30px; padding: 0 12px;
+      background: transparent;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      color: var(--text-2); font-size: 12px; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background .15s, color .15s;
+    }
+    .btn-ghost:hover { background: var(--bg-hover); color: var(--text-1); }
+    .btn-ghost svg { width: 13px; height: 13px; }
+
+    /* ─── 内容区 ─── */
+    .content {
+      flex: 1;
+      padding: 28px 28px 60px;
+      background: var(--bg-subtle);
+    }
+
+    /* ─── 图标网格 ─── */
+    .icons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      max-width: 680px;
+    }
+    .icon-card {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 20px 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      text-decoration: none; color: var(--text-1);
+      transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+      cursor: pointer;
+    }
+    .icon-card:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-4);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .icon-card:active { transform: translateY(0); }
+    .icon-wrap {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      transition: background .15s;
+    }
+    .icon-card:hover .icon-wrap { background: var(--bg-hover); }
+    .icon-wrap svg { width: 20px; height: 20px; color: var(--text-2); }
+    .icon-label { font-size: 13px; font-weight: 500; color: var(--text-1); text-align: center; }
+
+    .dashboard-hint {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .main-wrap { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+
+// ==================== 统一认证工具函数 ====================
+function getAuthToken() {
+  return localStorage.getItem('agent_access_token') || localStorage.getItem('admin_access_token');
+}
+
+function handleUnauthorized() {
+  localStorage.removeItem('admin_access_token');
+  localStorage.removeItem('admin_refresh_token');
+  localStorage.removeItem('agent_access_token');
+  localStorage.removeItem('agent_refresh_token');
+  alert('登录已过期，请重新登录');
+  window.location.href = '/admin/login';
+}
+
+// Fetch 拦截器 - 自动添加认证 token 并处理 401
+(function() {
+  var origFetch = window.fetch;
+  window.fetch = function(input, init) {
+    init = init || {};
+    var url = typeof input === 'string' ? input : input && input.url;
+    if (typeof url === 'string' && url.indexOf('/api/') === 0) {
+      var token = getAuthToken();
+      if (token) {
+        var headers = init.headers || {};
+        if (headers instanceof Headers) {
+          if (!headers.has('Authorization')) {
+            headers.set('Authorization', 'Bearer ' + token);
+          }
+        } else {
+          headers['Authorization'] = 'Bearer ' + token;
+          init.headers = headers;
+        }
+      }
+    }
+    return origFetch.call(this, input, init).then(function(res) {
+      if (res.status === 401) {
+        var url2 = typeof input === 'string' ? input : (input && input.url);
+        if (url2 && url2.indexOf('/api/') === 0) {
+          handleUnauthorized();
+        }
+      }
+      return res;
+    }).catch(function(e) { return Promise.reject(e); });
+  };
+})();
+
+// 页面加载时检查登录
+(function(){
+  if (!getAuthToken()) {
+    window.location.href = '/admin/login';
+  }
+})();
+
+(function(){ var t=localStorage.getItem('theme'); if(t==='dark') document.documentElement.setAttribute('data-theme','dark'); })();</script>
+
+  <div class="layout">
+    <!-- 左侧侧边栏 -->
+    <aside class="sidebar">
+      <a href="/home" class="sidebar-logo">
+        <div class="sidebar-logo-mark">
+          <svg viewBox="0 0 17 17" fill="none">
+            <path d="M8.5 2C6.8 2 5.4 3 4.8 4.4C4.2 4.1 3.5 4 2.8 4.3C1.8 4.7 1.2 5.8 1.4 6.9C0.7 7.4 0.3 8.2 0.5 9.1C0.7 10 1.5 10.6 2.4 10.7C2.6 11.7 3.3 12.5 4.3 12.8C4.8 14.1 6 15 7.5 15C8 15 8.5 14.9 8.9 14.7C9.3 14.9 9.8 15 10.3 14.9C11.6 14.7 12.6 13.6 12.6 12.3C13.5 12 14.2 11.2 14.3 10.2C15.1 9.9 15.6 9.1 15.5 8.2C15.4 7.3 14.7 6.6 13.9 6.4C13.8 5.3 13.1 4.4 12.1 4C11.5 2.8 10.1 2 8.5 2Z" fill="currentColor" style="color:var(--btn-primary-text)"/>
+          </svg>
+        </div>
+        <span class="sidebar-logo-text">客服管理</span>
+      </a>
+      <nav class="sidebar-nav">
+        <a href="/admin/dashboard-overview" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          数据看板
+        </a>
+        <a href="/admin/orders.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          全部订单
+        </a>
+        <a href="/admin/message-center" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          消息中心
+        </a>
+        <a href="/admin/evaluation.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          评价管理
+        </a>
+        <a href="/admin/pre-sale-notes.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          售前处理
+        </a>
+        <a href="/admin/after-sales.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          售后服务
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/home" class="sidebar-footer-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          返回主界面
+        </a>
+        <button class="sidebar-footer-btn" id="themeBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          深色模式
+        </button>
+      </div>
+    </aside>
+
+    <!-- 右侧主体 -->
+    <div class="main-wrap">
+      <!-- 顶部栏 -->
+      <div class="topbar">
+        <div class="topbar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          数据看板
+        </div>
+        <div class="topbar-right">
+          <a href="/home" class="btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            返回主界面
+          </a>
+        </div>
+      </div>
+
+      <!-- 内容区：不再放置与侧栏重复的图标按钮，请用左侧菜单 -->
+      <div class="content">
+        <p class="dashboard-hint">请使用左侧菜单进入各功能模块。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var btn = document.getElementById('themeBtn');
+      function apply(t) {
+        if (t === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          btn.childNodes[btn.childNodes.length-1].textContent = ' 浅色模式';
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          btn.childNodes[btn.childNodes.length-1].textContent = ' 深色模式';
+        }
+      }
+      apply(localStorage.getItem('theme') || 'light');
+      btn.addEventListener('click', function() {
+        var cur = document.documentElement.getAttribute('data-theme');
+        var next = cur === 'dark' ? 'light' : 'dark';
+        apply(next); localStorage.setItem('theme', next);
+      });
+    })();
+  </script>
+</body>
+</html>

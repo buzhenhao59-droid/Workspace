@@ -1,0 +1,24 @@
+Neo4j 演示虚拟库（与卖方终端 backend/database.py 图模型一致）
+================================================================
+
+1. 启动数据库
+   在本目录执行:
+     docker compose up -d
+
+2. 连接信息（写入项目根目录 .env 或卖方终端 backend 使用的环境变量）
+   NEO4J_URI=bolt://127.0.0.1:7687
+   NEO4J_USER=neo4j
+   NEO4J_PASSWORD=ruitalk_demo_2026
+
+3. 导入与 seller 假数据同主题的演示订单图
+   cd 本目录
+   pip install neo4j
+   python seed_neo4j_demo.py
+
+4. 验证
+   浏览器打开 http://127.0.0.1:7474 用 neo4j / ruitalk_demo_2026 登录；
+   重启卖方后端后打开管理端「全部订单」，应能看到 Neo4j 中的订单（优先于本地 platform_sync.db）。
+
+5. 若未装 Docker / 未起 Neo4j
+   可运行: python 卖方终端/backend/build_demo_data.py
+   会生成 backend/data/platform_sync.db 中的 sync_orders，后端会自动回退使用该缓存（需已修复的格式化与状态映射）。

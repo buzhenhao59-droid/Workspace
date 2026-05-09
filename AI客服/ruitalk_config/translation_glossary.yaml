@@ -1,0 +1,168 @@
+# Ruitalk 翻译术语库配置文件
+# 位置: ruitalk_config/translation_glossary.yaml
+#
+# 使用说明：
+# 1. 本文件用于定义专业术语的翻译对照
+# 2. 系统会在翻译前自动匹配术语库，确保专业词汇翻译准确
+# 3. 支持热更新：修改本文件后，翻译服务会自动刷新
+
+version: "1.0.0"
+updated_at: "2026-04-12T00:00:00"
+
+# 政策类术语
+policy:
+  - id: "policy_001"
+    source_term: "七天无理由退货"
+    translations:
+      en: "7-Day No-Reason Return"
+      ar: "إرجاع بدون سبب خلال 7 أيام"
+      ru: "Возврат без причины в течение 7 дней"
+      th: "คืนสินค้าไม่มีเงื่อนไข 7 วัน"
+      vi: "Đổi trả không cần lý do trong 7 ngày"
+      id: "Pengembalian Tanpa Alasan dalam 7 Hari"
+      ms: "Pemulangan Tanpa Alasan 7 Hari"
+      tl: "Pagbabalik walang Dahilan sa loob ng 7 Araw"
+    category: "policy"
+    notes: "七天无理由退货服务"
+    case_sensitive: false
+
+  - id: "policy_002"
+    source_term: "退货政策"
+    translations:
+      en: "Return Policy"
+      ar: "سياسة الإرجاع"
+      ru: "Политика возврата"
+      th: "นโยบายการคืนสินค้า"
+      vi: "Chính sách đổi trả"
+      id: "Kebijakan Pengembalian"
+      ms: "Dasar Pemulangan"
+      tl: "Patakaran sa Pagbabalik"
+    category: "policy"
+    notes: "退货相关政策"
+    case_sensitive: false
+
+  - id: "policy_003"
+    source_term: "退款政策"
+    translations:
+      en: "Refund Policy"
+      ar: "سياسة الاسترداد"
+      ru: "Политика возврата средств"
+      th: "นโยบายคืนเงิน"
+      vi: "Chính sách hoàn tiền"
+      id: "Kebijakan Pengembalian Dana"
+      ms: "Dasar Bayaran Balik"
+      tl: "Patakaran sa Refund"
+    category: "policy"
+    notes: "退款相关政策"
+    case_sensitive: false
+
+  - id: "policy_004"
+    source_term: "售后服务"
+    translations:
+      en: "After-Sales Service"
+      ar: "خدمة ما بعد البيع"
+      ru: "Послепродажное обслуживание"
+      th: "บริการหลังการขาย"
+      vi: "Dịch vụ sau bán hàng"
+      id: "Layanan Purna Jual"
+      ms: "Servis Selepas Jual"
+      tl: "Serbisyo Pagkatapos ng Pagbebenta"
+    category: "policy"
+    notes: "售后服务相关"
+    case_sensitive: false
+
+# 支付类术语
+payment:
+  - id: "payment_001"
+    source_term: "货到付款"
+    translations:
+      en: "Cash on Delivery (COD)"
+      ar: "الدفع عند الاستلام"
+      ru: "Оплата при получении"
+      th: "ชำระเงินปลายทาง"
+      vi: "Thanh toán khi nhận hàng (COD)"
+      id: "Bayar di Tempat (COD)"
+      ms: "Bayar semasa Penghantaran"
+      tl: "Bayad sa Pagtanggap (COD)"
+    category: "payment"
+    notes: "货到付款"
+    case_sensitive: false
+
+  - id: "payment_002"
+    source_term: "七天退款到账"
+    translations:
+      en: "7-Day Refund to Account"
+      ar: "استرداد خلال 7 أيام"
+      ru: "Возврат средств в течение 7 дней"
+      th: "คืนเงินภายใน 7 วัน"
+      vi: "Hoàn tiền trong 7 ngày"
+      id: "Pengembalian Dana dalam 7 Hari"
+      ms: "Bayaran Balik dalam 7 Hari"
+      tl: "Refund sa loob ng 7 Araw"
+    category: "payment"
+    notes: "退款到账时间"
+    case_sensitive: false
+
+# 物流类术语
+shipping:
+  - id: "shipping_001"
+    source_term: "七天无理由包邮"
+    translations:
+      en: "7-Day Free Return Shipping"
+      ar: "شحن مجاني للإرجاع خلال 7 أيام"
+      ru: "Бесплатная доставка при возврате в течение 7 дней"
+      th: "ส่งคืนฟรี 7 วัน"
+      vi: "Miễn phí vận chuyển khi đổi trả trong 7 ngày"
+      id: "Gratis Ongkos Kirim Pengembalian 7 Hari"
+      ms: "Penghantaran Percuma Pulangan 7 Hari"
+      tl: "Libreng Pagbabalik sa loob ng 7 Araw"
+    category: "shipping"
+    notes: "七天无理由退货且包邮"
+    case_sensitive: false
+
+  - id: "shipping_002"
+    source_term: "物流单号"
+    translations:
+      en: "Tracking Number"
+      ar: "رقم التتبع"
+      ru: "Номер отслеживания"
+      th: "หมายเลขติดตามพัสดุ"
+      vi: "Mã vận đơn"
+      id: "Nomor Pelacakan"
+      ms: "Nombor Pengesanan"
+      tl: "Numero ng Pagsubaybay"
+    category: "shipping"
+    notes: "物流单号"
+    case_sensitive: false
+
+# 商品类术语
+product:
+  - id: "product_001"
+    source_term: "正品保证"
+    translations:
+      en: "Authenticity Guaranteed"
+      ar: "ضمان الأصالة"
+      ru: "Гарантия подлинности"
+      th: "รับประกันของแท้"
+      vi: "Đảm bảo chính hãng"
+      id: "Jaminan Original"
+      ms: "Jaminan Original"
+      tl: "Garantiyang Authenticity"
+    category: "product"
+    notes: "正品保证"
+    case_sensitive: false
+
+  - id: "product_002"
+    source_term: "原产地"
+    translations:
+      en: "Country of Origin"
+      ar: "بلد المنشأ"
+      ru: "Страна происхождения"
+      th: "ประเทศต้นทาง"
+      vi: "Xuất xứ"
+      id: "Negara Asal"
+      ms: "Negeri Asal"
+      tl: "Bansang Pinagmulan"
+    category: "product"
+    notes: "原产地证明"
+    case_sensitive: false

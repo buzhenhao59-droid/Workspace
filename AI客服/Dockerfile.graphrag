@@ -1,0 +1,70 @@
+# ============================================================
+# Ruitalk GraphRAG 代理服务 Dockerfile
+# 独立容器，运行 graphrag_proxy.py（Flask + Neo4j）
+#
+# 构建: docker build -f Dockerfile.graphrag -t ruitalk/graphrag:latest .
+# 运行: docker run -d -p 5050:5050 --env-file .env ruitalk/graphrag:latest
+# ============================================================
+FROM python:3.11-slim AS base
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# 安装系统依赖（Neo4j driver 需要）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# ============================================================
+# 阶段1：安装依赖
+# ============================================================
+FROM base AS deps
+
+COPY 卖方终端/requirements.txt /tmp/requirements.txt
+
+# 过滤 Windows 专用包
+RUN grep -v -E "^(uvloop|websockets|pywin32|wmi|systemd)" /tmp/requirements.txt \
+    > /tmp/requirements_filtered.txt || true
+
+# 只装 graphrag 需要的最小依赖
+RUN pip install --no-cache-dir \
+    -r /tmp/requirements_filtered.txt \
+    flask \
+    neo4j \
+    python-dotenv \
+    && rm -rf /root/.cache/pip
+
+# ============================================================
+# 阶段2：生产镜像
+# ============================================================
+FROM base AS production
+
+RUN groupadd --gid 1000 ruitalk && \
+    useradd --uid 1000 --gid ruitalk --shell /bin/bash --create-home ruitalk
+
+WORKDIR /app
+
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+# 只复制 graphrag 代理相关的代码
+COPY 卖方终端/backend/config.py /app/backend/config.py
+COPY 卖方终端/backend/graphrag_proxy.py /app/backend/graphrag_proxy.py
+
+# .env 文件（运行时由 docker-compose env_file 提供）
+# 不 COPY .env 到镜像中（避免密钥泄露）
+
+USER ruitalk
+
+# 健康检查（/health 返回 200=健康，503=degraded）
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
+    CMD curl -sf http://localhost:5050/health || exit 1
+
+EXPOSE 5050
+
+ENV GRAPHRAG_PROXY_PORT=5050
+
+CMD ["python", "-m", "uvicorn", "backend.graphrag_proxy:app", \
+     "--host", "0.0.0.0", "--port", "5050", "--workers", "1"]
